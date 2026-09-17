@@ -83,3 +83,7 @@ npm run dev
 ```
 
 The frontend application will be available at `http://localhost:5173/`.
+
+## Branching Strategy & Workflow
+
+Please see [BRANCHING_STRATEGY.md](./BRANCHING_STRATEGY.md) for a detailed explanation of our Agile branching strategy, branch naming conventions, and the Pull Request workflow.
