@@ -39,5 +39,5 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci
         DEBUG: "True"
         ALLOWED_HOSTS: localhost
-        DATABASE_URL: sqlite:////tmp/db.sqlite3
+        DATABASE_URL: sqlite://:memory:
       run: python manage.py test
