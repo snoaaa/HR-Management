@@ -1,49 +1,80 @@
 # HR Management
 
-A Django + React (Vite) full-stack project.
+A decoupled full-stack application utilizing Django for the backend API and React (Vite) for the frontend.
 
----
+## Code Structure
 
-## Backend Setup
+The repository is strictly divided into two distinct environments to enforce separation of concerns:
+
+- `backend/`
+  Contains the Django application. It provides a RESTful API and manages database interactions via a remote PostgreSQL instance. Configuration is strictly managed through environment variables (`.env`) following 12-factor app principles. 
+
+- `frontend/`
+  Contains the React application built with Vite. It consumes the backend REST API via Axios. The backend API URL is injected via environment variables at build time.
+
+## Prerequisites
+
+- Python 3.9+
+- Node.js 18+
+- PostgreSQL database instance
+
+## Configuration
+
+Both the frontend and backend rely on environment variables. Do not hardcode credentials or URLs in the source code.
+
+### Backend
+
+Create a `.env` file in the `backend/` directory:
+
+```env
+SECRET_KEY=your_django_secret_key
+DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+### Frontend
+
+Create a `.env` file in the `frontend/` directory:
+
+```env
+VITE_API_URL=http://127.0.0.1:8000/api/
+```
+
+## Running the Application
+
+### Backend Setup
+
+Navigate to the backend directory and set up the Python virtual environment:
 
 ```bash
 cd backend
-
-# Create and activate virtual environment
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1      # Windows
-# source .venv/bin/activate       # macOS/Linux
-
-# Install dependencies
-pip install -r requirements.txt
 ```
 
-Create the PostgreSQL database:
+Activate the virtual environment:
+- Windows: `.\.venv\Scripts\Activate.ps1`
+- macOS/Linux: `source .venv/bin/activate`
 
-```sql
-CREATE DATABASE hr_management;
-```
-
-Update the database credentials in `backend/hrms_backend/settings.py` if needed.
+Install dependencies and apply database migrations:
 
 ```bash
-# Run migrations
+pip install -r requirements.txt
 python manage.py migrate
+```
 
-# Create admin user
-python manage.py createsuperuser
+Start the development server:
 
-# Start server
+```bash
 python manage.py runserver
 ```
 
-API is available at `http://127.0.0.1:8000/api/`
+The API will be available at `http://127.0.0.1:8000/api/`.
 
----
+### Frontend Setup
 
-## Frontend Setup
-
-Open a second terminal:
+Open a new terminal session, navigate to the frontend directory, install dependencies, and start the Vite development server:
 
 ```bash
 cd frontend
@@ -51,4 +82,4 @@ npm install
 npm run dev
 ```
 
-App is available at `http://localhost:5173/`
+The frontend application will be available at `http://localhost:5173/`.

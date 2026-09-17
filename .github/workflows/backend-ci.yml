@@ -1,0 +1,42 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Black Formatter Check
+      run: black --check .
+
+    - name: Run Flake8 Linter
+      run: flake8 .
+
+    - name: Run Django Tests
+      env:
+        SECRET_KEY: test-secret-key-for-ci
+        DEBUG: "True"
+        ALLOWED_HOSTS: localhost
+      run: python manage.py test
