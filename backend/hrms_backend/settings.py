@@ -44,12 +44,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "django_filters",
     "corsheaders",
     "api",
     "users",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "organisation",
+    "employees",
 ]
 
 MIDDLEWARE = [
