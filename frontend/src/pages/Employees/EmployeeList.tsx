@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PageMeta from "@/components/common/PageMeta";
 import Button from "@/components/ui/button/Button";
@@ -8,6 +9,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import Badge from "@/components/ui/badge/Badge";
 
 export default function EmployeeList() {
+  const navigate = useNavigate();
   const { employees, loading, fetchEmployees, archiveEmployee } = useEmployees();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -106,7 +108,7 @@ export default function EmployeeList() {
               <DownloadIcon className="w-4 h-4 fill-current" />
               Export
             </Button>
-            <Button size="sm" className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-full px-6 transition-transform hover:scale-105 shadow-brand-500/30 shadow-lg">
+            <Button size="sm" onClick={() => navigate('/employees/new')} className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-full px-6 transition-transform hover:scale-105 shadow-brand-500/30 shadow-lg">
               <PlusIcon className="w-4 h-4 fill-current" />
               Add Employee
             </Button>
@@ -179,10 +181,10 @@ export default function EmployeeList() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-2 text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-full transition-colors">
+                          <button onClick={() => navigate(`/employees/${emp.id}`)} className="p-2 text-gray-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-full transition-colors">
                             <EyeIcon className="w-4 h-4 fill-current" />
                           </button>
-                          <button className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors">
+                          <button onClick={() => navigate(`/employees/edit/${emp.id}`)} className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors">
                             <EditIcon className="w-4 h-4 fill-current" />
                           </button>
                           {emp.status !== 'ARCHIVED' && (

@@ -24,6 +24,8 @@ import Images from "./pages/UiElements/Images";
 import Videos from "./pages/UiElements/Videos";
 import UserProfiles from "./pages/UserProfiles";
 import EmployeeList from "./pages/Employees/EmployeeList";
+import EmployeeForm from "./pages/Employees/EmployeeForm";
+import EmployeeProfile from "./pages/Employees/EmployeeProfile";
 
 import OrganisationSettings from "./pages/Organisation/OrganisationSettings";
 import { ToastProvider } from "./context/ToastContext";
@@ -48,6 +50,9 @@ export default function App() {
               <Route path="/audit-trail" element={<AuditTrail />} />
               <Route path="/organisation" element={<OrganisationSettings />} />
               <Route path="/employees" element={<EmployeeList />} />
+              <Route path="/employees/new" element={<EmployeeForm />} />
+              <Route path="/employees/edit/:id" element={<EmployeeForm />} />
+              <Route path="/employees/:id" element={<EmployeeProfile />} />
 
               {/* Others Page */}
               <Route path="/profile" element={<UserProfiles />} />
