@@ -104,11 +104,11 @@ export default function EmployeeList() {
           </div>
           
           <div className="flex gap-3 w-full sm:w-auto">
-            <Button size="sm" variant="outline" onClick={exportCSV} className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-full px-6 transition-transform hover:scale-105">
+            <Button size="sm" variant="outline" onClick={exportCSV} className="flex-1 sm:flex-none flex items-center justify-center gap-2">
               <DownloadIcon className="w-4 h-4 fill-current" />
               Export
             </Button>
-            <Button size="sm" onClick={() => navigate('/employees/new')} className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-full px-6 transition-transform hover:scale-105 shadow-brand-500/30 shadow-lg">
+            <Button size="sm" onClick={() => navigate('/employees/new')} className="flex-1 sm:flex-none flex items-center justify-center gap-2">
               <PlusIcon className="w-4 h-4 fill-current" />
               Add Employee
             </Button>

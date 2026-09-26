@@ -6,7 +6,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import Button from "@/components/ui/button/Button";
 import Badge from "@/components/ui/badge/Badge";
 import { useEmployees } from "@/hooks/useEmployees";
-import { Employee, EmployeeHistory } from "@/types/employee";
+import type { Employee, EmployeeHistory } from "@/types/employee";
 import { UserIcon, EditIcon, CheckCircleIcon, TimeIcon, DocsIcon, GroupIcon, DollarIcon } from "@/icons";
 
 export default function EmployeeProfile() {
@@ -71,7 +71,7 @@ export default function EmployeeProfile() {
           
           <div className="pb-2">
             <Link to={`/employees/edit/${employee.id}`}>
-              <Button size="sm" variant="outline" className="flex items-center gap-2 rounded-full shadow-sm hover:shadow-md transition-shadow">
+              <Button size="sm" variant="outline" className="flex items-center gap-2">
                 <EditIcon className="w-4 h-4 fill-current" />
                 Edit Profile
               </Button>
@@ -119,16 +119,40 @@ export default function EmployeeProfile() {
                 <div>
                   <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Contact</h4>
                   <p className="font-medium text-gray-900 dark:text-white">{employee.phone_number}</p>
-                  <p className="text-sm text-gray-500">{employee.personal_email}</p>
+                  {employee.phone_number_2 && <p className="font-medium text-gray-900 dark:text-white">{employee.phone_number_2}</p>}
+                  {employee.phone_number_3 && <p className="font-medium text-gray-900 dark:text-white">{employee.phone_number_3}</p>}
+                  <p className="text-sm text-gray-500 mt-1">{employee.personal_email}</p>
                 </div>
                 <div>
                   <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Address</h4>
                   <p className="font-medium text-gray-900 dark:text-white">{employee.address}</p>
                 </div>
                 <div className="md:col-span-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                  <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Emergency Contact</h4>
-                  <p className="font-medium text-gray-900 dark:text-white">{employee.emergency_contact_name}</p>
-                  <p className="text-sm text-gray-500">{employee.emergency_contact_number}</p>
+                  <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-3">Emergency Contacts</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                      <p className="text-xs text-brand-500 font-semibold mb-1">Primary</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{employee.emergency_contact_name}</p>
+                      {employee.emergency_contact_relationship && <p className="text-xs text-gray-500 mb-1">{employee.emergency_contact_relationship}</p>}
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{employee.emergency_contact_number}</p>
+                    </div>
+                    {employee.emergency_contact_name_2 && (
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <p className="text-xs text-gray-500 font-semibold mb-1">Secondary</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{employee.emergency_contact_name_2}</p>
+                        {employee.emergency_contact_relationship_2 && <p className="text-xs text-gray-500 mb-1">{employee.emergency_contact_relationship_2}</p>}
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{employee.emergency_contact_number_2}</p>
+                      </div>
+                    )}
+                    {employee.emergency_contact_name_3 && (
+                      <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                        <p className="text-xs text-gray-500 font-semibold mb-1">Tertiary</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{employee.emergency_contact_name_3}</p>
+                        {employee.emergency_contact_relationship_3 && <p className="text-xs text-gray-500 mb-1">{employee.emergency_contact_relationship_3}</p>}
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{employee.emergency_contact_number_3}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </ComponentCard>

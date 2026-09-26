@@ -1,5 +1,5 @@
 import api from './axiosConfig';
-import { Employee, FamilyMember, EmployeeDocument, EducationAndExperience } from '../types/employee';
+import type { Employee, FamilyMember, EmployeeDocument, EducationAndExperience } from '../types/employee';
 
 const EMPLOYEE_ENDPOINT = '/employees/';
 

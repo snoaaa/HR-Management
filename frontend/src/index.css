@@ -194,6 +194,19 @@
   body {
     @apply relative z-1 bg-gray-50 font-outfit font-normal;
   }
+  
+  /* Make all inputs distinct globally */
+  input:not([type="checkbox"]):not([type="radio"]), 
+  select, 
+  textarea {
+    @apply bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 shadow-sm outline-none;
+  }
+  
+  input:not([type="checkbox"]):not([type="radio"]):focus, 
+  select:focus, 
+  textarea:focus {
+    @apply ring-2 ring-brand-500/50 border-brand-500 dark:border-brand-500;
+  }
 }
 
 @utility menu-item {
@@ -1126,4 +1139,19 @@ pre[class*="language-"].line-numbers {
   .custom-calendar .fc-timegrid {
     min-width: 580px;
   }
+}
+
+/* PhoneInput Custom Styling overrides */
+.PhoneInputCountryIcon {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.PhoneInputCountryIcon--border {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.PhoneInputCountryIconImg {
+  display: none !important;
 }

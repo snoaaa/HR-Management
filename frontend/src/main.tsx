@@ -4,6 +4,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "simplebar-react/dist/simplebar.min.css";
 import "swiper/swiper-bundle.css";
+import "flag-icons/css/flag-icons.min.css";
 import App from "./App.tsx";
 import { AppWrapper } from "./components/common/PageMeta.tsx";
 import { LanguageProvider } from "./context/LanguageContext.tsx";

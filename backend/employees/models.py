@@ -60,10 +60,22 @@ class Employee(models.Model):
     # Contact Details (BN-12)
     address = models.TextField()
     phone_number = models.CharField(max_length=50)
+    phone_number_2 = models.CharField(max_length=50, blank=True, null=True)
+    phone_number_3 = models.CharField(max_length=50, blank=True, null=True)
     personal_email = models.EmailField(blank=True, null=True)
     professional_email = models.EmailField(blank=True, null=True)
+    
     emergency_contact_name = models.CharField(max_length=150)
     emergency_contact_number = models.CharField(max_length=50)
+    emergency_contact_relationship = models.CharField(max_length=100, blank=True, null=True)
+    
+    emergency_contact_name_2 = models.CharField(max_length=150, blank=True, null=True)
+    emergency_contact_number_2 = models.CharField(max_length=50, blank=True, null=True)
+    emergency_contact_relationship_2 = models.CharField(max_length=100, blank=True, null=True)
+    
+    emergency_contact_name_3 = models.CharField(max_length=150, blank=True, null=True)
+    emergency_contact_number_3 = models.CharField(max_length=50, blank=True, null=True)
+    emergency_contact_relationship_3 = models.CharField(max_length=100, blank=True, null=True)
 
     # Social & Tax (BN-14)
     social_insurance_number = models.CharField(max_length=100, blank=True, null=True)

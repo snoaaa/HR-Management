@@ -54,10 +54,19 @@ export interface Employee {
   // Contact Details
   address: string;
   phone_number: string;
+  phone_number_2?: string | null;
+  phone_number_3?: string | null;
   personal_email?: string | null;
   professional_email?: string | null;
   emergency_contact_name: string;
   emergency_contact_number: string;
+  emergency_contact_relationship?: string | null;
+  emergency_contact_name_2?: string | null;
+  emergency_contact_number_2?: string | null;
+  emergency_contact_relationship_2?: string | null;
+  emergency_contact_name_3?: string | null;
+  emergency_contact_number_3?: string | null;
+  emergency_contact_relationship_3?: string | null;
 
   // Social & Tax
   social_insurance_number?: string | null;

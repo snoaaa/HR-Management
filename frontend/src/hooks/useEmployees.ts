@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { employeeService } from '../api/employeeService';
-import { Employee } from '../types/employee';
+import type { Employee } from '../types/employee';
 
 export const useEmployees = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
