@@ -6,18 +6,35 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0001_initial'),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='requires_password_change',
-            field=models.BooleanField(default=True, help_text='Designates whether the user needs to change their password at next login.'),
+            model_name="user",
+            name="requires_password_change",
+            field=models.BooleanField(
+                default=True,
+                help_text="Designates whether the user needs to change their password at next login.",
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='role',
-            field=models.CharField(choices=[('HR_MANAGER', 'HR Manager'), ('HR_OFFICER', 'HR Officer'), ('PAYROLL_OFFICER', 'Payroll Officer'), ('ACCOUNTANT', 'Accountant'), ('HEAD_OF_DEPARTMENT', 'Head of Department'), ('EMPLOYEE', 'Employee'), ('GENERAL_MANAGEMENT', 'General Management'), ('SYSTEM_ADMINISTRATOR', 'System Administrator')], default='EMPLOYEE', help_text="The user's role in the HRMS system, determining their permissions.", max_length=50),
+            model_name="user",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("HR_MANAGER", "HR Manager"),
+                    ("HR_OFFICER", "HR Officer"),
+                    ("PAYROLL_OFFICER", "Payroll Officer"),
+                    ("ACCOUNTANT", "Accountant"),
+                    ("HEAD_OF_DEPARTMENT", "Head of Department"),
+                    ("EMPLOYEE", "Employee"),
+                    ("GENERAL_MANAGEMENT", "General Management"),
+                    ("SYSTEM_ADMINISTRATOR", "System Administrator"),
+                ],
+                default="EMPLOYEE",
+                help_text="The user's role in the HRMS system, determining their permissions.",
+                max_length=50,
+            ),
         ),
     ]

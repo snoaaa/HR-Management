@@ -7,7 +7,7 @@ import Button from "@/components/ui/button/Button";
 import { useEmployees } from "@/hooks/useEmployees";
 import type { Employee } from "@/types/employee";
 import { CheckCircleIcon, ArrowRightIcon, ChevronLeftIcon } from "@/icons";
-import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { NATIONALITIES } from "@/constants/nationalities";
 import Select, { components } from 'react-select';
@@ -39,7 +39,7 @@ const FlagSingleValue = (props: SingleValueProps<any>) => (
 );
 
 const selectStyles = {
-  control: (base: any, state: any) => ({
+  control: (base: any) => ({
     ...base,
     backgroundColor: 'transparent',
     borderColor: 'transparent',
@@ -122,7 +122,7 @@ export default function EmployeeForm() {
         if (data.emergency_contact_name_3 || data.emergency_contact_number_3) count = 3;
         setEmergencyContactCount(count);
         setLoading(false);
-      }).catch(err => {
+      }).catch(_err => {
         setError("Failed to load employee data.");
         setLoading(false);
       });
