@@ -4,9 +4,12 @@ import Input from "../form/input/InputField";
 import Label from "../form/Label";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
+import { useAuth } from "@/context/AuthContext";
 
 export default function UserMetaCard() {
   const { isOpen, openModal, closeModal } = useModal();
+  const { user } = useAuth();
+  
   const handleSave = () => {
     // Handle save logic here
     console.log("Saving changes...");
@@ -19,24 +22,20 @@ export default function UserMetaCard() {
           <div className="flex-1">
             <div className="mb-6 flex flex-col gap-5 sm:flex-row xl:items-center xl:justify-between">
               <div className="flex w-full flex-col items-start gap-6 sm:flex-row sm:items-center">
-                <div className="border-gray-20 overflow-hidden rounded-full border dark:border-gray-800">
-                  <img
-                    src="./images/user/owner.png"
-                    className="size-20"
-                    alt="user"
-                  />
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-brand-100 text-3xl font-bold text-brand-600 dark:bg-brand-900 dark:text-brand-300">
+                  {user?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U'}
                 </div>
                 <div className="text-left">
                   <h4 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-                    Musharof Chowdhury
+                    {user?.first_name} {user?.last_name}
                   </h4>
                   <div className="flex items-center gap-1 sm:gap-3">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Team Manager
+                      {user?.role?.replace(/_/g, ' ')}
                     </p>
                     <div className="hidden h-3.5 w-px bg-gray-300 sm:block dark:bg-gray-700"></div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Arizona, United States.
+                      @{user?.username}
                     </p>
                   </div>
                 </div>
@@ -48,7 +47,7 @@ export default function UserMetaCard() {
                   First Name
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Chowdury
+                  {user?.first_name || '-'}
                 </p>
               </div>
               <div className="w-full">
@@ -56,7 +55,7 @@ export default function UserMetaCard() {
                   Last Name
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Musharof
+                  {user?.last_name || '-'}
                 </p>
               </div>
               <div className="hidden xl:block"></div>
@@ -66,23 +65,23 @@ export default function UserMetaCard() {
                   Email address
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  randomuser@pimjo.com
+                  {user?.email || '-'}
                 </p>
               </div>
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  Phone
+                  Role
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  +09 363 398 46
+                  {user?.role?.replace(/_/g, ' ')}
                 </p>
               </div>
               <div>
                 <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                  Bio
+                  Status
                 </p>
                 <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                  Team Manager
+                  Active
                 </p>
               </div>
               <div>
