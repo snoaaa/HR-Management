@@ -4,3 +4,11 @@ from django.urls import path
 urlpatterns = [
     # Define your API URL patterns here.
 ]
+from .views import (
+    AuditLogListView,
+    MeView,
+    RoleListCreateView,
+    UserDetailView,
+    UserListCreateView,
+    UserRoleListCreateView,
+)
