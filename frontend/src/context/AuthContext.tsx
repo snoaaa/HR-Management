@@ -43,9 +43,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('refresh_token', refresh);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
-    
-    // Redirect logic could be placed here or handled by the component calling login
-    navigate('/');
   };
 
   const logout = () => {
