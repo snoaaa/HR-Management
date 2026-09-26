@@ -4,12 +4,20 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import (EducationAndExperience, Employee, EmployeeDocument,
-                     EmployeeHistory, FamilyMember)
-from .serializers import (EducationAndExperienceSerializer,
-                          EmployeeDocumentSerializer,
-                          EmployeeHistorySerializer, EmployeeSerializer,
-                          FamilyMemberSerializer)
+from .models import (
+    EducationAndExperience,
+    Employee,
+    EmployeeDocument,
+    EmployeeHistory,
+    FamilyMember,
+)
+from .serializers import (
+    EducationAndExperienceSerializer,
+    EmployeeDocumentSerializer,
+    EmployeeHistorySerializer,
+    EmployeeSerializer,
+    FamilyMemberSerializer,
+)
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):

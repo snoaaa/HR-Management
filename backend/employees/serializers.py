@@ -1,7 +1,12 @@
 from rest_framework import serializers
 
-from .models import (EducationAndExperience, Employee, EmployeeDocument,
-                     EmployeeHistory, FamilyMember)
+from .models import (
+    EducationAndExperience,
+    Employee,
+    EmployeeDocument,
+    EmployeeHistory,
+    FamilyMember,
+)
 
 
 class FamilyMemberSerializer(serializers.ModelSerializer):

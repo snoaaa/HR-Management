@@ -1,7 +1,12 @@
 from django.contrib import admin
 
-from .models import (EducationAndExperience, Employee, EmployeeDocument,
-                     EmployeeHistory, FamilyMember)
+from .models import (
+    EducationAndExperience,
+    Employee,
+    EmployeeDocument,
+    EmployeeHistory,
+    FamilyMember,
+)
 
 
 @admin.register(Employee)
