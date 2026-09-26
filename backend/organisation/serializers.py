@@ -1,7 +1,13 @@
 from rest_framework import serializers
 
-from .models import (Classification, CompanyIdentity, CostCentre, Department,
-                     Position, Site)
+from .models import (
+    Classification,
+    CompanyIdentity,
+    CostCentre,
+    Department,
+    Position,
+    Site,
+)
 
 
 class CompanyIdentitySerializer(serializers.ModelSerializer):

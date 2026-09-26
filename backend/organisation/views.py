@@ -1,13 +1,23 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-
 from users.utils import log_audit_action
 
-from .models import (Classification, CompanyIdentity, CostCentre, Department,
-                     Position, Site)
-from .serializers import (ClassificationSerializer, CompanyIdentitySerializer,
-                          CostCentreSerializer, DepartmentSerializer,
-                          PositionSerializer, SiteSerializer)
+from .models import (
+    Classification,
+    CompanyIdentity,
+    CostCentre,
+    Department,
+    Position,
+    Site,
+)
+from .serializers import (
+    ClassificationSerializer,
+    CompanyIdentitySerializer,
+    CostCentreSerializer,
+    DepartmentSerializer,
+    PositionSerializer,
+    SiteSerializer,
+)
 
 
 class BaseOrganisationViewSet(viewsets.ModelViewSet):
@@ -23,7 +33,6 @@ class BaseOrganisationViewSet(viewsets.ModelViewSet):
         instance = serializer.save()
 
         # Serialize the new state to dict for audit
-
         new_data = self.get_serializer(instance).data
 
         log_audit_action(

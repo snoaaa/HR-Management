@@ -6,6 +6,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+
 from users.utils import log_audit_action
 
 from .serializers import CustomTokenObtainPairSerializer, UserSerializer
@@ -83,12 +84,12 @@ class LogoutView(APIView):
                 {"detail": "Successfully logged out."},
                 status=status.HTTP_205_RESET_CONTENT,
             )
-        except TokenError:
+        except TokenError as e:
             return Response(
                 {"detail": "Token is invalid or expired."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except Exception:
+        except Exception as e:
             return Response(
                 {"detail": "An error occurred during logout."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

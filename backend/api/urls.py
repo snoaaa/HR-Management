@@ -2,9 +2,14 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import (AuditLogViewSet, ChangePasswordView,
-                    CustomTokenObtainPairView, LogoutView, UserMeView,
-                    UserViewSet)
+from .views import (
+    AuditLogViewSet,
+    ChangePasswordView,
+    CustomTokenObtainPairView,
+    LogoutView,
+    UserMeView,
+    UserViewSet,
+)
 
 router = DefaultRouter()
 router.register(r"users/management", UserViewSet, basename="user-management")

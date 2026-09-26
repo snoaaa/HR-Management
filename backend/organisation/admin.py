@@ -1,7 +1,13 @@
 from django.contrib import admin
 
-from .models import (Classification, CompanyIdentity, CostCentre, Department,
-                     Position, Site)
+from .models import (
+    Classification,
+    CompanyIdentity,
+    CostCentre,
+    Department,
+    Position,
+    Site,
+)
 
 
 @admin.register(CompanyIdentity)
