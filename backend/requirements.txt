@@ -6,3 +6,4 @@ dj-database-url>=2.1.0
 python-dotenv>=1.0.0
 flake8>=6.0.0
 black>=23.0.0
+djangorestframework-simplejwt>=5.3.1
