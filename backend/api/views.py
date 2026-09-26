@@ -6,6 +6,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+
 from users.utils import log_audit_action
 
 from .serializers import CustomTokenObtainPairSerializer, UserSerializer
@@ -207,16 +208,26 @@ class UserViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         user = serializer.save()
+        new_data = self.get_serializer(user).data
         log_audit_action(
             user=self.request.user,
             action=f"Created user: {user.username}",
             module="User Management",
             request=self.request,
-            details={"created_user_id": user.id, "role": user.role},
+            details={
+                "created_user_id": user.id,
+                "role": user.role,
+                "new_value": new_data,
+            },
         )
 
     def perform_update(self, serializer):
+        old_instance = self.get_object()
+        old_data = self.get_serializer(old_instance).data
+
         user = serializer.save()
+        new_data = self.get_serializer(user).data
+
         log_audit_action(
             user=self.request.user,
             action=f"Updated user: {user.username}",
@@ -226,6 +237,8 @@ class UserViewSet(ModelViewSet):
                 "updated_user_id": user.id,
                 "is_active": user.is_active,
                 "role": user.role,
+                "previous_value": old_data,
+                "new_value": new_data,
             },
         )
 
@@ -234,6 +247,8 @@ class UserViewSet(ModelViewSet):
         # But if a DELETE request comes in, we can either soft delete or actually delete.
         # Let's enforce soft delete for audit purposes.
         username = instance.username
+        old_data = self.get_serializer(instance).data
+
         instance.is_active = False
         instance.save()
 
@@ -242,7 +257,7 @@ class UserViewSet(ModelViewSet):
             action=f"Deactivated user: {username}",
             module="User Management",
             request=self.request,
-            details={"deactivated_user_id": instance.id},
+            details={"deactivated_user_id": instance.id, "previous_value": old_data},
         )
 
 

@@ -10,6 +10,7 @@ import {
   UserCircleIcon,
   GroupIcon,
   FileIcon,
+  SettingsAltIcon,
 } from "../icons";
 import { cn } from "../utils";
 import SidebarWidget from "./SidebarWidget";
@@ -52,6 +53,11 @@ const getNavItems = (_role: string | undefined): NavItem[] => {
       icon: <GroupIcon fontSize={24} />,
       name: "User Management",
       path: "/users",
+    });
+    items.push({
+      icon: <SettingsAltIcon fontSize={24} />,
+      name: "Organisation Settings",
+      path: "/organisation",
     });
     items.push({
       icon: <FileIcon fontSize={24} />,
@@ -160,7 +166,7 @@ const AppSidebar: React.FC = () => {
     if (isMobileOpen) {
       setIsMobileOpen(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [location.pathname]);
 
   // const isActive = (path: string) => location.pathname === path;
