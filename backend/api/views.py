@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+
+
 from users.utils import log_audit_action
 
 from .serializers import CustomTokenObtainPairSerializer, UserSerializer
@@ -260,6 +262,7 @@ class UserViewSet(ModelViewSet):
 
 
 from rest_framework.viewsets import ReadOnlyModelViewSet
+
 from users.models import AuditLog
 
 from .serializers import AuditLogSerializer
