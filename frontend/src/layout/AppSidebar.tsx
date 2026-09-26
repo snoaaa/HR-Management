@@ -2,18 +2,14 @@ import { useSidebar } from "@/context/SidebarContext";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
+import { useAuth } from "@/context/AuthContext";
 import {
-  BoxCubeIcon,
-  CalenderIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
-  ListIcon,
-  PageIcon,
-  PieChartIcon,
-  PlugInIcon,
-  TableIcon,
   UserCircleIcon,
+  GroupIcon,
+  FileIcon,
 } from "../icons";
 import { cn } from "../utils";
 import SidebarWidget from "./SidebarWidget";
@@ -35,98 +31,121 @@ type NavItem = {
   }[];
 };
 
-const navItems: NavItem[] = [
-  {
-    icon: <GridIcon fontSize={24} />,
-    name: "Dashboard",
-    key: "dashboard",
-    subItems: [{ name: "Ecommerce", key: "ecommerceHome", path: "/" }],
-  },
-  {
-    icon: <CalenderIcon fontSize={24} />,
-    name: "Calendar",
-    key: "calendar",
-    path: "/calendar",
-  },
-  {
-    icon: <UserCircleIcon fontSize={24} />,
-    name: "User Profile",
-    key: "userProfile",
-    path: "/profile",
-  },
-  {
-    name: "Forms",
-    key: "forms",
-    icon: <ListIcon fontSize={24} />,
-    subItems: [
-      {
-        name: "Form Elements",
-        key: "formElements",
-        path: "/form-elements",
-        pro: false,
-      },
-    ],
-  },
-  {
-    name: "Tables",
-    key: "tables",
-    icon: <TableIcon fontSize={24} />,
-    subItems: [
-      {
-        name: "Basic Tables",
-        key: "basicTables",
-        path: "/basic-tables",
-        pro: false,
-      },
-    ],
-  },
-  {
-    name: "Pages",
-    key: "pages",
-    icon: <PageIcon fontSize={24} />,
-    subItems: [{ name: "Blank Page", key: "blankPage", path: "/blank" }],
-  },
-];
+const getNavItems = (_role: string | undefined): NavItem[] => {
+  const items: NavItem[] = [
+    {
+      icon: <GridIcon fontSize={24} />,
+      name: "Dashboard",
+      key: "dashboard",
+      path: "/",
+    },
+    {
+      icon: <UserCircleIcon fontSize={24} />,
+      name: "My Profile",
+      key: "userProfile",
+      path: "/profile",
+    },
+  ];
 
-const othersItems: NavItem[] = [
-  {
-    icon: <PieChartIcon fontSize={24} />,
-    name: "Charts",
-    key: "charts",
-    subItems: [
-      { name: "Line Chart", key: "lineChart", path: "/line-chart" },
-      { name: "Bar Chart", key: "barChart", path: "/bar-chart" },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon fontSize={24} />,
-    name: "UI Elements",
-    key: "uiElements",
-    subItems: [
-      { name: "Alerts", key: "alerts", path: "/alerts", pro: false },
-      { name: "Avatar", key: "avatar", path: "/avatars", pro: false },
-      { name: "Badge", key: "badge", path: "/badge", pro: false },
-      { name: "Buttons", key: "buttons", path: "/buttons", pro: false },
-      { name: "Images", key: "images", path: "/images", pro: false },
-      { name: "Videos", key: "videos", path: "/videos", pro: false },
-    ],
-  },
-  {
-    icon: <PlugInIcon fontSize={24} />,
-    name: "Authentication",
-    key: "authentication",
-    subItems: [
-      { name: "Sign In", key: "signIn", path: "/signin", pro: false },
-      { name: "Sign Up", key: "signUp", path: "/signup", pro: false },
-    ],
-  },
-];
+  if (_role === "SYSTEM_ADMINISTRATOR" || _role === "HR_MANAGER") {
+    items.push({
+      icon: <GroupIcon fontSize={24} />,
+      name: "User Management",
+      path: "/users",
+    });
+    items.push({
+      icon: <FileIcon fontSize={24} />,
+      name: "System Audit Trail",
+      path: "/audit-trail",
+    });
+  }
+
+  /* Hidden unused template pages:
+    {
+      icon: <CalenderIcon fontSize={24} />,
+      name: "Calendar",
+      key: "calendar",
+      path: "/calendar",
+    },
+    {
+      name: "Forms",
+      key: "forms",
+      icon: <ListIcon fontSize={24} />,
+      subItems: [
+        { name: "Form Elements", key: "formElements", path: "/form-elements", pro: false },
+      ],
+    },
+    {
+      name: "Tables",
+      key: "tables",
+      icon: <TableIcon fontSize={24} />,
+      subItems: [
+        { name: "Basic Tables", key: "basicTables", path: "/basic-tables", pro: false },
+      ],
+    },
+    {
+      name: "Pages",
+      key: "pages",
+      icon: <PageIcon fontSize={24} />,
+      subItems: [{ name: "Blank Page", key: "blankPage", path: "/blank" }],
+    },
+    */
+
+  return items;
+};
+
+const getOthersItems = (_role: string | undefined): NavItem[] => {
+  const items: NavItem[] = [];
+
+  /* Hidden unused template pages:
+  items.push(
+    {
+      icon: <PieChartIcon fontSize={24} />,
+      name: "Charts",
+      key: "charts",
+      subItems: [
+        { name: "Line Chart", key: "lineChart", path: "/line-chart" },
+        { name: "Bar Chart", key: "barChart", path: "/bar-chart" },
+      ],
+    },
+    {
+      icon: <BoxCubeIcon fontSize={24} />,
+      name: "UI Elements",
+      key: "uiElements",
+      subItems: [
+        { name: "Alerts", key: "alerts", path: "/alerts", pro: false },
+        { name: "Avatar", key: "avatar", path: "/avatars", pro: false },
+        { name: "Badge", key: "badge", path: "/badge", pro: false },
+        { name: "Buttons", key: "buttons", path: "/buttons", pro: false },
+        { name: "Images", key: "images", path: "/images", pro: false },
+        { name: "Videos", key: "videos", path: "/videos", pro: false },
+      ],
+    },
+    {
+      icon: <PlugInIcon fontSize={24} />,
+      name: "Authentication",
+      key: "authentication",
+      subItems: [
+        { name: "Sign In", key: "signIn", path: "/signin", pro: false },
+        { name: "Sign Up", key: "signUp", path: "/signup", pro: false },
+      ],
+    }
+  );
+  */
+
+  return items;
+};
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered, setIsMobileOpen } =
     useSidebar();
   const { t } = useTranslation();
   const location = useLocation();
+  const { user } = useAuth();
+  
+  const navItems = getNavItems(user?.role);
+  const othersItems = getOthersItems(user?.role);
+
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
     index: number;
@@ -412,22 +431,24 @@ const AppSidebar: React.FC = () => {
               {renderMenuItems(navItems, "main")}
             </div>
 
-            <div>
-              <h2
-                className={`mb-4 flex text-xs leading-5 text-gray-400 uppercase ${
-                  !isExpanded && !isHovered
-                    ? "xl:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  t("sidebar.groups.others")
-                ) : (
-                  <HorizontaLDots className="size-6" />
-                )}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
-            </div>
+            {othersItems.length > 0 && (
+              <div>
+                <h2
+                  className={`mb-4 flex text-xs leading-5 text-gray-400 uppercase ${
+                    !isExpanded && !isHovered
+                      ? "xl:justify-center"
+                      : "justify-start"
+                  }`}
+                >
+                  {isExpanded || isHovered || isMobileOpen ? (
+                    t("sidebar.groups.others")
+                  ) : (
+                    <HorizontaLDots className="size-6" />
+                  )}
+                </h2>
+                {renderMenuItems(othersItems, "others")}
+              </div>
+            )}
           </div>
         </nav>
 
