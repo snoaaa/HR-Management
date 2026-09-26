@@ -29,9 +29,9 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 
 # Application definition
@@ -79,7 +79,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "hrms_backend.wsgi.application"
 
-
+AUTH_USER_MODEL = "api.User"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
