@@ -6,6 +6,8 @@ import { EyeCloseIcon, EyeIcon } from "@/icons";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/api/axiosConfig";
+import { useNavigate, useLocation } from "react-router";
+import { useToast } from "@/context/ToastContext";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,6 +19,9 @@ export default function SignInForm() {
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const toast = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +37,9 @@ export default function SignInForm() {
 
       const { access, refresh, user } = response.data;
       login(access, refresh, user);
-      
+      toast.success('Welcome back!');
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
     } catch (err: any) {
       if (err.response?.data?.detail) {
         setError(err.response.data.detail);
@@ -121,3 +128,4 @@ export default function SignInForm() {
     </div>
   );
 }
+
