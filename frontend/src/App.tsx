@@ -24,14 +24,18 @@ import Images from "./pages/UiElements/Images";
 import Videos from "./pages/UiElements/Videos";
 import UserProfiles from "./pages/UserProfiles";
 
+import OrganisationSettings from "./pages/Organisation/OrganisationSettings";
+import { ToastProvider } from "./context/ToastContext";
+
 export default function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <ScrollToTop />
-        <Routes>
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
+    <ToastProvider>
+      <Router>
+        <AuthProvider>
+          <ScrollToTop />
+          <Routes>
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
             <Route path="/change-password" element={<ChangePassword />} />
             
             {/* Dashboard Layout */}
@@ -41,6 +45,7 @@ export default function App() {
               {/* Management */}
               <Route path="/users" element={<UserManagement />} />
               <Route path="/audit-trail" element={<AuditTrail />} />
+              <Route path="/organisation" element={<OrganisationSettings />} />
 
               {/* Others Page */}
               <Route path="/profile" element={<UserProfiles />} />
@@ -76,5 +81,6 @@ export default function App() {
         </Routes>
       </AuthProvider>
     </Router>
+    </ToastProvider>
   );
 }
