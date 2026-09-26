@@ -31,10 +31,6 @@ export default function CompanyIdentityForm() {
   const [initialFetch, setInitialFetch] = useState(true);
   const toast = useToast();
 
-  useEffect(() => {
-    fetchIdentity();
-  }, []);
-
   async function fetchIdentity() {
     try {
       const response = await api.get("organisation/company-identity/");
@@ -47,6 +43,10 @@ export default function CompanyIdentityForm() {
       setInitialFetch(false);
     }
   }
+
+  useEffect(() => {
+    fetchIdentity();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

@@ -53,7 +53,7 @@ class CostCentre(models.Model):
 
 class Department(models.Model):
     """
-    BN-02: Manage a hierarchy of organisational units on several levels: company, site or establishment, 
+    BN-02: Manage a hierarchy of organisational units on several levels: company, site or establishment,
     division, department, service, and team.
     BN-05: Attach every organisational unit to a manager and to a cost centre.
     """
@@ -107,7 +107,7 @@ class Department(models.Model):
 
 class Classification(models.Model):
     """
-    BN-04: Manage the grid of professional categories, grades, echelons and coefficients 
+    BN-04: Manage the grid of professional categories, grades, echelons and coefficients
     used for classification and for the base salary.
     """
 
@@ -129,7 +129,7 @@ class Classification(models.Model):
 
 class Position(models.Model):
     """
-    BN-03: Manage the catalogue of positions with their title, mission, required skills, 
+    BN-03: Manage the catalogue of positions with their title, mission, required skills,
     salary category and reporting position.
     """
 
