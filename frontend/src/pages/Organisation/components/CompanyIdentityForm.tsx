@@ -35,7 +35,7 @@ export default function CompanyIdentityForm() {
     fetchIdentity();
   }, []);
 
-  const fetchIdentity = async () => {
+  async function fetchIdentity() {
     try {
       const response = await api.get("organisation/company-identity/");
       if (response.data && response.data.length > 0) {
@@ -46,7 +46,7 @@ export default function CompanyIdentityForm() {
     } finally {
       setInitialFetch(false);
     }
-  };
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

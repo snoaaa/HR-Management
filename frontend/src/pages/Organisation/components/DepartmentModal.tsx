@@ -125,7 +125,7 @@ export default function DepartmentModal({ department, onClose, onSuccess }: Depa
               <Select
                 name="unit_type"
                 value={formData.unit_type}
-                // @ts-ignore
+                // @ts-expect-error
                 onChange={handleChange}
                 options={[
                   { value: "COMPANY", label: "Company" },
