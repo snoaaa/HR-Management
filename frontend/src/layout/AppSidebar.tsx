@@ -55,6 +55,11 @@ const getNavItems = (_role: string | undefined): NavItem[] => {
       path: "/users",
     });
     items.push({
+      icon: <UserCircleIcon fontSize={24} />, // Re-using UserCircle or something similar
+      name: "Employee Directory",
+      path: "/employees",
+    });
+    items.push({
       icon: <SettingsAltIcon fontSize={24} />,
       name: "Organisation Settings",
       path: "/organisation",

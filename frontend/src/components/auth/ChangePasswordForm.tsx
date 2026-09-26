@@ -142,7 +142,7 @@ export default function ChangePasswordForm() {
                   </p>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm" disabled={loading}>
+                  <Button type="submit" className="w-full" size="sm" disabled={loading}>
                     {loading ? "Updating..." : "Update Password"}
                   </Button>
                 </div>
