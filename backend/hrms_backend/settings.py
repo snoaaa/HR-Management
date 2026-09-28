@@ -55,6 +55,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # BN-173: makes the current request available to model signals so that
+    # audit entries carry the author/IP/machine. Must wrap everything below.
+    "api.middleware.AuditContextMiddleware",
+    # BN-174: closes idle sessions automatically, then blocks every other
+    # endpoint until a flagged account has changed its password.
+    "api.middleware.SessionTimeoutMiddleware",
+    "api.middleware.ForcePasswordChangeMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -86,7 +93,12 @@ WSGI_APPLICATION = "hrms_backend.wsgi.application"
 DATABASES = {"default": dj_database_url.config(default=os.environ.get("DATABASE_URL"))}
 
 
-# Password validation
+# BN-169 - the custom user model is the only account type in the system;
+# there is no separate/shared "service account" concept anywhere.
+AUTH_USER_MODEL = "api.User"
+
+
+# Password validation (BN-174)
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -96,10 +108,42 @@ AUTH_PASSWORD_VALIDATORS = [
             "UserAttributeSimilarityValidator"
         )
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 10},
+    },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {"NAME": "api.validators.PasswordComplexityValidator"},
+    {"NAME": "api.validators.PasswordHistoryValidator", "OPTIONS": {"history_size": 5}},
 ]
+
+# BN-174 - session lifetime and inactivity timeout.
+SESSION_COOKIE_AGE = int(
+    os.environ.get("SESSION_COOKIE_AGE", 60 * 60 * 8)
+)  # 8h hard ceiling
+SESSION_INACTIVITY_TIMEOUT_MINUTES = int(
+    os.environ.get("SESSION_INACTIVITY_TIMEOUT_MINUTES", 30)
+)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+# BN-176 - display name used in the otpauth:// provisioning URI.
+OTP_ISSUER_NAME = os.environ.get("OTP_ISSUER_NAME", "HR Management")
+
+# BN-169/170 - individual, session-based authentication for the API; every
+# endpoint requires an authenticated user unless a view opts out (login).
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 50,
+}
 
 
 # Internationalization
@@ -130,3 +174,14 @@ CORS_ALLOWED_ORIGINS = [
     for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_HTTPONLY = False
+

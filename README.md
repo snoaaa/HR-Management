@@ -87,3 +87,10 @@ The frontend application will be available at `http://localhost:5173/`.
 ## Branching Strategy & Workflow
 
 Please see [BRANCHING_STRATEGY.md](./BRANCHING_STRATEGY.md) for a detailed explanation of our Agile branching strategy, branch naming conventions, and the Pull Request workflow.
+
+## Security, Roles and Audit (M-17)
+
+The backend's authentication, fine-grained role/permission model, salary
+confidentiality, immutable audit trail, password policy and GDPR handling
+are documented in [backend/SECURITY.md](./backend/SECURITY.md), which maps
+each business need (BN-169 .. BN-177) to the code implementing it.
