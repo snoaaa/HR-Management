@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_spectacular.utils import extend_schema
 
 
 from users.utils import log_audit_action
@@ -61,6 +62,7 @@ class LogoutView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(request=None, responses={205: None})
     def post(self, request):
         try:
             refresh_token = request.data.get("refresh")
@@ -103,6 +105,7 @@ class UserMeView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(responses={200: UserSerializer})
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -121,6 +124,7 @@ class ChangePasswordView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
+    @extend_schema(request=ChangePasswordSerializer, responses={200: None})
     def post(self, request, *args, **kwargs):
         serializer = ChangePasswordSerializer(data=request.data)
 
