@@ -72,6 +72,20 @@ python manage.py runserver
 
 The API will be available at `http://127.0.0.1:8000/api/`.
 
+### Seeding the Database (Initial Data)
+
+If you are setting up the project for the first time, you can populate the database with required test users and organizational structures by running:
+
+```bash
+python manage.py seed_data
+```
+
+### API Documentation (Swagger)
+
+The project includes an automatically generated interactive OpenAPI (Swagger) documentation. Once the backend server is running, you can explore the API endpoints by navigating to:
+- **Swagger UI**: `http://127.0.0.1:8000/api/docs/`
+- **Raw Schema**: `http://127.0.0.1:8000/api/schema/`
+
 ### Frontend Setup
 
 Open a new terminal session, navigate to the frontend directory, install dependencies, and start the Vite development server:
