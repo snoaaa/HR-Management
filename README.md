@@ -117,6 +117,7 @@ The project includes an automatically generated interactive OpenAPI (Swagger) do
 - **Swagger UI**: `http://127.0.0.1:8000/api/docs/`
 - **Raw Schema**: `http://127.0.0.1:8000/api/schema/`
 
+
 ### Frontend Setup
 
 Open a new terminal session, navigate to the frontend directory, install dependencies, and start the Vite development server:
@@ -132,3 +133,6 @@ The frontend application will be available at `http://localhost:5173/`.
 ## Branching Strategy & Workflow
 
 Please see [BRANCHING_STRATEGY.md](./BRANCHING_STRATEGY.md) for a detailed explanation of our Agile branching strategy, branch naming conventions, and the Pull Request workflow.
+
+# hello team 
+everyone should clone and we'll review it on our next spring 
