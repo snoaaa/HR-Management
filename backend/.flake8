@@ -2,3 +2,5 @@
 max-line-length = 120
 exclude = .git,__pycache__,migrations,venv
 extend-ignore = E402,F841
+# HTML of the printable documents.
+per-file-ignores = documents/default_templates.py:E501

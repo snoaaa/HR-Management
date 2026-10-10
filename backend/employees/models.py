@@ -1,3 +1,5 @@
+import datetime
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -139,25 +141,46 @@ class Employee(models.Model):
     def __str__(self):
         return f"[{self.matriculation_number}] {self.surname} {self.given_names}"
 
+    @property
+    def full_name(self):
+        return f"{self.given_names} {self.surname}"
+
+    @property
+    def seniority_years(self):
+        """BN-16: seniority computed from the date of hire."""
+        if not self.date_of_hire:
+            return 0
+        hire = self.date_of_hire
+        if isinstance(hire, str):
+            hire = datetime.date.fromisoformat(hire)
+        return round((timezone.now().date() - hire).days / 365.25, 2)
+
     def save(self, *args, **kwargs):
         if not self.matriculation_number:
-            # BN-10: Auto-allocate unique matriculation number
-            year = timezone.now().year
-            last_employee = (
-                Employee.objects.filter(matriculation_number__startswith=f"EMP-{year}")
-                .order_by("id")
-                .last()
-            )
-            if last_employee and "-" in last_employee.matriculation_number:
-                try:
-                    last_id = int(last_employee.matriculation_number.split("-")[-1])
-                    new_id = last_id + 1
-                except ValueError:
-                    new_id = 1
-            else:
-                new_id = 1
-            self.matriculation_number = f"EMP-{year}-{new_id:03d}"
+            # BN-10: unique, non-reusable number following a configurable format.
+            self.matriculation_number = next_matriculation_number()
         super().save(*args, **kwargs)
+
+
+def next_matriculation_number():
+    """
+    The format comes from the setting MATRICULATION_FORMAT, e.g.
+    "EMP-{year}-{seq:03d}". The sequence is stored in a counter so that a
+    number is never reused, even if a record were removed.
+    """
+    from django.db import transaction
+
+    from core.models import Sequence, get_setting
+
+    year = timezone.now().year
+    fmt = get_setting("MATRICULATION_FORMAT", "EMP-{year}-{seq:03d}")
+    with transaction.atomic():
+        seq = Sequence.next_value(f"matriculation-{year}")
+        number = fmt.format(year=year, seq=seq)
+        while Employee.objects.filter(matriculation_number=number).exists():
+            seq = Sequence.next_value(f"matriculation-{year}")
+            number = fmt.format(year=year, seq=seq)
+    return number
 
 
 class FamilyMember(models.Model):

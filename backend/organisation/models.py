@@ -119,6 +119,8 @@ class Classification(models.Model):
     coefficient = models.DecimalField(
         max_digits=10, decimal_places=2, blank=True, null=True
     )
+    # BN-172 / Table 8: HR officers do not see the salary of executives.
+    is_executive = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.category} - {self.grade}{' - ' + self.echelon if self.echelon else ''}"

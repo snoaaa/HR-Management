@@ -80,3 +80,30 @@ class AuditLog(models.Model):
     def __str__(self):
         user_str = self.user.username if self.user else "Anonymous/System"
         return f"[{self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {user_str} - {self.action}"
+
+    def save(self, *args, **kwargs):
+        # BN-173 / BN-175: the audit trail is unalterable.
+        if self.pk is not None:
+            raise PermissionError("Audit log entries cannot be modified.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise PermissionError("Audit log entries cannot be deleted.")
+
+
+class RolePermission(models.Model):
+    """
+    BN-170: Permission of a role on a module for one action
+    (consult, create, modify, delete, validate, print, export).
+    """
+
+    role = models.CharField(max_length=50, choices=User.Roles.choices)
+    module = models.CharField(max_length=50)
+    action = models.CharField(max_length=20)
+
+    class Meta:
+        unique_together = ("role", "module", "action")
+        ordering = ["role", "module", "action"]
+
+    def __str__(self):
+        return f"{self.role}: {self.module}.{self.action}"

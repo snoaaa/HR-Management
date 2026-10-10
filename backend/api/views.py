@@ -280,3 +280,153 @@ class AuditLogViewSet(ReadOnlyModelViewSet):
     serializer_class = AuditLogSerializer
     permission_classes = [IsSystemAdminOrHRManager]
     queryset = AuditLog.objects.all()
+
+
+from django.db import transaction
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+from rest_framework.decorators import action
+
+from core.exports import export_rows
+from users.models import RolePermission
+from users.permissions import (
+    ACTIONS,
+    MODULES,
+    can_view_salary,
+    get_permissions_for_role,
+    has_module_permission,
+)
+
+
+class AuditLogExportMixin:
+    @action(detail=False, methods=["get"])
+    def export(self, request):
+        """BN-175: export the (filtered) audit trail."""
+        if not has_module_permission(request.user, "audit", "export"):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        fmt = request.query_params.get("file_format", "csv")
+        queryset = self.filter_queryset(self.get_queryset())[:10000]
+        rows = [
+            [
+                log.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                log.user.username if log.user else "",
+                log.module,
+                log.action,
+                log.ip_address or "",
+                (log.details or {}).get("user_agent", ""),
+            ]
+            for log in queryset
+        ]
+        log_audit_action(
+            user=request.user,
+            action=f"Exported audit trail ({len(rows)} rows)",
+            module="Audit",
+            request=request,
+        )
+        return export_rows(
+            ["Date", "User", "Module", "Action", "IP address", "Machine"],
+            rows,
+            "audit-trail",
+            fmt,
+            title="Audit trail",
+        )
+
+
+class FilteredAuditLogViewSet(AuditLogExportMixin, AuditLogViewSet):
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = {
+        "module": ["exact"],
+        "user": ["exact"],
+        "timestamp": ["gte", "lte"],
+    }
+    search_fields = ["action", "module", "user__username"]
+
+
+class MyPermissionsView(APIView):
+    """Permissions of the logged-in user, used by the frontend menus."""
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        from employees.models import Employee
+
+        user = request.user
+        if user.is_superuser:
+            perms = {module: list(ACTIONS) for module in MODULES}
+        else:
+            perms = {
+                module: sorted(actions)
+                for module, actions in get_permissions_for_role(user.role).items()
+            }
+        employee = Employee.objects.filter(user=user).first()
+        return Response(
+            {
+                "role": user.role,
+                "permissions": perms,
+                "can_view_salary": can_view_salary(user),
+                "employee_id": employee.id if employee else None,
+                "manages_departments": list(
+                    user.managed_departments.values_list("id", flat=True)
+                ),
+            }
+        )
+
+
+class PermissionMatrixView(APIView):
+    """
+    BN-170: consult and change the permission matrix (role x module x action).
+    GET returns {role: {module: [actions]}}; PUT replaces it.
+    """
+
+    permission_classes = (IsSystemAdminOrHRManager,)
+
+    def get(self, request):
+        matrix = {role: {} for role in User.Roles.values}
+        for perm in RolePermission.objects.all():
+            matrix.setdefault(perm.role, {}).setdefault(perm.module, []).append(
+                perm.action
+            )
+        return Response(
+            {
+                "modules": MODULES,
+                "actions": ACTIONS,
+                "roles": [
+                    {"value": value, "label": label}
+                    for value, label in User.Roles.choices
+                ],
+                "matrix": matrix,
+            }
+        )
+
+    def put(self, request):
+        matrix = request.data.get("matrix", {})
+        previous = {
+            f"{p.role}:{p.module}:{p.action}" for p in RolePermission.objects.all()
+        }
+        rows = []
+        for role, modules in matrix.items():
+            if role not in User.Roles.values:
+                continue
+            for module, actions in modules.items():
+                if module not in MODULES:
+                    continue
+                for perm_action in actions:
+                    if perm_action in ACTIONS:
+                        rows.append(
+                            RolePermission(role=role, module=module, action=perm_action)
+                        )
+        with transaction.atomic():
+            RolePermission.objects.all().delete()
+            RolePermission.objects.bulk_create(rows)
+        current = {f"{r.role}:{r.module}:{r.action}" for r in rows}
+        log_audit_action(
+            user=request.user,
+            action="Changed the permission matrix",
+            module="User Management",
+            request=request,
+            details={
+                "granted": sorted(current - previous),
+                "revoked": sorted(previous - current),
+            },
+        )
+        return self.get(request)

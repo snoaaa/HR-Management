@@ -9,7 +9,7 @@ import ChangePassword from "./pages/AuthPages/ChangePassword";
 import Calendar from "./pages/Calendar";
 import BarChart from "./pages/Charts/BarChart";
 import LineChart from "./pages/Charts/LineChart";
-import Home from "./pages/Dashboard/Ecommerce";
+import Home from "./pages/Dashboard/Home";
 import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/OtherPage/Blank";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -29,12 +29,24 @@ import EmployeeProfile from "./pages/Employees/EmployeeProfile";
 
 import OrganisationSettings from "./pages/Organisation/OrganisationSettings";
 import { ToastProvider } from "./context/ToastContext";
+import { PermissionsProvider } from "./context/PermissionsContext";
+import ContractList from "./pages/Contracts/ContractList";
+import ContractDetail from "./pages/Contracts/ContractDetail";
+import Attendance from "./pages/Attendance/Attendance";
+import LeaveAdmin from "./pages/Leave/LeaveAdmin";
+import MyLeave from "./pages/Leave/MyLeave";
+import Approvals from "./pages/Notifications/Approvals";
+import Notifications from "./pages/Notifications/Notifications";
+import PermissionMatrix from "./pages/Admin/PermissionMatrix";
+import AdminSettings from "./pages/Admin/AdminSettings";
+import ComingSoon from "./pages/OtherPage/ComingSoon";
 
 export default function App() {
   return (
     <ToastProvider>
       <Router>
         <AuthProvider>
+        <PermissionsProvider>
           <ScrollToTop />
           <Routes>
             {/* Protected Routes */}
@@ -53,6 +65,23 @@ export default function App() {
               <Route path="/employees/new" element={<EmployeeForm />} />
               <Route path="/employees/edit/:id" element={<EmployeeForm />} />
               <Route path="/employees/:id" element={<EmployeeProfile />} />
+              <Route path="/contracts" element={<ContractList />} />
+              <Route path="/contracts/:id" element={<ContractDetail />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/leave" element={<LeaveAdmin />} />
+              <Route path="/my/leave" element={<MyLeave />} />
+              <Route path="/approvals" element={<Approvals />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/admin/permissions" element={<PermissionMatrix />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+
+              {/* Next iteration: the backend of these screens is ready */}
+              <Route path="/planning" element={<ComingSoon />} />
+              <Route path="/payroll/*" element={<ComingSoon />} />
+              <Route path="/documents" element={<ComingSoon />} />
+              <Route path="/my/time" element={<ComingSoon />} />
+              <Route path="/my/payslips" element={<ComingSoon />} />
+              <Route path="/my/documents" element={<ComingSoon />} />
 
               {/* Others Page */}
               <Route path="/profile" element={<UserProfiles />} />
@@ -86,6 +115,7 @@ export default function App() {
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+      </PermissionsProvider>
       </AuthProvider>
     </Router>
     </ToastProvider>

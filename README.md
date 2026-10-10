@@ -80,6 +80,37 @@ If you are setting up the project for the first time, you can populate the datab
 python manage.py seed_data
 ```
 
+It creates the demo accounts (password `password123`): `admin` (system administrator), `hrmanager` (HR manager), `payroll` (payroll officer), `accountant`, `employee1`, `employee2`, plus an active contract with bank details for every employee.
+
+The reference data of the modules (leave types, entitlement rule, public holidays, standard schedule, shifts, payroll parameters, scales, contributions and taxes, salary elements, document templates, approval circuits, permission matrix) is loaded by the migrations and is then edited from the application, never in the code.
+
+### Daily job
+
+Deadline alerts (end of fixed-term contracts and trial periods, expiring documents, retirement, payroll and declaration due dates) and the closing of ended contracts run with:
+
+```bash
+python manage.py send_deadline_alerts
+```
+
+Schedule it once a day (Windows Task Scheduler or cron). HR managers can also trigger it with `POST /api/notifications/run-alerts/`.
+
+### Modules of the API
+
+| Prefix | Module | Sprint |
+|---|---|---|
+| `/api/users/`, `/api/audit-logs/`, `/api/settings/` | Security, permission matrix, audit trail, settings (M-17, M-18) | 1 |
+| `/api/organisation/` | Organisation and structure (M-01) | 1 |
+| `/api/employees/` | Employee records, history, export (M-02) | 2 |
+| `/api/contracts/` | Contracts, amendments, renewals, suspensions, terminations (M-04) | 3 |
+| `/api/attendance/` | Calendars, schedules, clockings, overtime, absences (M-05, M-07) | 4, 6 |
+| `/api/leave/` | Leave types, balances, requests, approvals (M-06) | 5 |
+| `/api/planning/` | Shifts, timetables, conflicts, exchanges (M-07) | 6 |
+| `/api/notifications/` | Notifications, approval circuits and inbox (M-16) | 5, 6 |
+| `/api/payroll/` | Parameters, elements, periods, payslips, loans, simulation, declarations (M-11, M-12) | 7, 8, 9 |
+| `/api/documents/` | Templates, certificates, decisions, issued documents archive (M-12) | 3, 9 |
+
+Payroll settings marked "to validate" in `backend/payroll/reference_data.py` (minimum wage, seniority bonus, severance scale, overtime tiers) must be confirmed by the HR and payroll department before the first real payroll (open point OP-01). The bank transfer file uses a generic CSV layout until the bank format is known (OP-03).
+
 ### API Documentation (Swagger)
 
 The project includes an automatically generated interactive OpenAPI (Swagger) documentation. Once the backend server is running, you can explore the API endpoints by navigating to:

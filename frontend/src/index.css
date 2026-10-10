@@ -1,12 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 @import "tailwindcss";
+@import "./styles/design-system.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-*: initial;
-  --font-outfit: Outfit, sans-serif;
+  --font-outfit: "Public Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "Public Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -35,23 +38,48 @@
   --text-theme-xs: 12px;
   --text-theme-xs--line-height: 18px;
 
+  /* Odoo teal */
+  --color-teal-25: #f2fbfb;
+  --color-teal-50: #e6f7f7;
+  --color-teal-100: #c2ecea;
+  --color-teal-200: #8edcd9;
+  --color-teal-300: #4dc8c4;
+  --color-teal-400: #1fb3af;
+  --color-teal-500: #00a09d;
+  --color-teal-600: #008c89;
+  --color-teal-700: #007d7a;
+  --color-teal-800: #006361;
+  --color-teal-900: #004e4c;
+
+  /* SAP Fiori accents for data and status */
+  --color-sap-blue: #0a6ed1;
+  --color-sap-blue-light: #e5f0fa;
+  --color-sap-shell: #354a5f;
+  --color-sap-positive: #107e3e;
+  --color-sap-positive-light: #e8f5ec;
+  --color-sap-critical: #e9730c;
+  --color-sap-critical-light: #fef3e8;
+  --color-sap-negative: #bb0000;
+  --color-sap-negative-light: #fbeaea;
+  --color-sap-neutral: #6a6d70;
+
   --color-current: currentColor;
   --color-transparent: transparent;
   --color-white: #ffffff;
   --color-black: #101828;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  --color-brand-25: #fbf8fa;
+  --color-brand-50: #f5f0f3;
+  --color-brand-100: #ebe0e8;
+  --color-brand-200: #dcc6d5;
+  --color-brand-300: #c3a1b9;
+  --color-brand-400: #9e7a90;
+  --color-brand-500: #714b67;
+  --color-brand-600: #633f5a;
+  --color-brand-700: #55354d;
+  --color-brand-800: #4a2f42;
+  --color-brand-900: #3b2535;
+  --color-brand-950: #24151f;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -66,19 +94,19 @@
   --color-blue-light-900: #0b4a6f;
   --color-blue-light-950: #062c41;
 
-  --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f2f4f7;
-  --color-gray-200: #e4e7ec;
-  --color-gray-300: #d0d5dd;
-  --color-gray-400: #98a2b3;
-  --color-gray-500: #667085;
-  --color-gray-600: #475467;
-  --color-gray-700: #344054;
-  --color-gray-800: #1d2939;
-  --color-gray-900: #101828;
-  --color-gray-950: #0c111d;
-  --color-gray-dark: #1a2231;
+  --color-gray-25: #fcfbfc;
+  --color-gray-50: #faf8f9;
+  --color-gray-100: #f5f0f3;
+  --color-gray-200: #e8dde5;
+  --color-gray-300: #d6c8d2;
+  --color-gray-400: #9e8a98;
+  --color-gray-500: #6b5565;
+  --color-gray-600: #574452;
+  --color-gray-700: #433540;
+  --color-gray-800: #2d2430;
+  --color-gray-900: #1c161d;
+  --color-gray-950: #120d13;
+  --color-gray-dark: #221a23;
 
   --color-orange-25: #fffaf5;
   --color-orange-50: #fff6ed;
@@ -150,7 +178,7 @@
     0px 20px 24px -4px rgba(16, 24, 40, 0.08),
     0px 8px 8px -4px rgba(16, 24, 40, 0.03);
   --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(113, 75, 103, 0.14);
   --shadow-slider-navigation:
     0px 1px 2px 0px rgba(16, 24, 40, 0.1), 0px 1px 3px 0px rgba(16, 24, 40, 0.1);
   --shadow-tooltip:
@@ -192,7 +220,17 @@
   }
 
   body {
-    @apply relative z-1 bg-gray-50 font-outfit font-normal;
+    @apply relative z-1 font-outfit font-normal;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background: var(--surface-3);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .dark body,
+  body.dark {
+    background: #151016;
   }
   
   /* Make all inputs distinct globally */
@@ -315,8 +353,12 @@
   input[type="time"]::-webkit-inner-spin-button,
   input[type="date"]::-webkit-calendar-picker-indicator,
   input[type="time"]::-webkit-calendar-picker-indicator {
-    display: none;
-    -webkit-appearance: none;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  .dark input[type="date"]::-webkit-calendar-picker-indicator,
+  .dark input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
   }
 }
 

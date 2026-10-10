@@ -1,5 +1,6 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+
+from users.permissions import ModulePermission
 from users.utils import log_audit_action
 
 from .models import (
@@ -25,9 +26,9 @@ class BaseOrganisationViewSet(viewsets.ModelViewSet):
     Base viewset to handle audit logging for organisation structure changes.
     """
 
-    permission_classes = [
-        IsAuthenticated
-    ]  # Fine grained permissions could be applied here
+    # BN-170: permissions per module and per action.
+    permission_classes = [ModulePermission]
+    permission_module = "organisation"
 
     def perform_create(self, serializer):
         instance = serializer.save()
