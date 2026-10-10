@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from organisation.models import CompanyIdentity, Site, Department, Position
@@ -10,6 +11,13 @@ User = get_user_model()
 
 class Command(BaseCommand):
     help = "Seed the database with initial data for testing and development"
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--base-only",
+            action="store_true",
+            help="Only the base accounts, without the demonstration data.",
+        )
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Starting database seeding...")
@@ -147,6 +155,9 @@ class Command(BaseCommand):
         )
 
         self.seed_sprint_data(created_users, dept, pos, site)
+        if not kwargs.get("base_only"):
+            # Demonstration data for every module (Cameroonian context).
+            call_command("seed_demo", stdout=self.stdout)
         self.stdout.write(self.style.SUCCESS("Successfully seeded database!"))
 
     def seed_sprint_data(self, created_users, dept, pos, site):

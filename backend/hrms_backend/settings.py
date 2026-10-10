@@ -64,6 +64,12 @@ INSTALLED_APPS = [
     "leave",
     "planning",
     "payroll",
+    "accounting",
+    "careers",
+    "reports",
+    "evaluation",
+    "recruitment",
+    "training",
 ]
 
 MIDDLEWARE = [
@@ -146,6 +152,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 if "test" in sys.argv:
     # Documents produced by the test suite must not land in the real media.
     MEDIA_ROOT = os.path.join(tempfile.gettempdir(), "hrms-test-media")
+BACKUP_ROOT = os.environ.get("BACKUP_ROOT", os.path.join(BASE_DIR, "backups"))
+if "test" in sys.argv:
+    BACKUP_ROOT = os.path.join(tempfile.gettempdir(), "hrms-test-backups")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

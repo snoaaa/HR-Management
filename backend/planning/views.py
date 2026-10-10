@@ -11,6 +11,7 @@ from core.pdf import render_pdf
 from employees.models import Employee
 from notifications.services import start_approval
 from users.permissions import (
+    is_admin,
     ORGANISATION_SCOPE_ROLES,
     ModulePermission,
     managed_department_ids,
@@ -75,12 +76,13 @@ class ShiftSwapSerializer(serializers.ModelSerializer):
 
 
 def _allowed_departments(user):
-    if user.is_superuser or user.role in ORGANISATION_SCOPE_ROLES:
+    if is_admin(user) or user.role in ORGANISATION_SCOPE_ROLES:
         return None
     return managed_department_ids(user)
 
 
 class ShiftViewSet(viewsets.ModelViewSet):
+    search_fields = ("name", "code")
     queryset = Shift.objects.all()
     serializer_class = ShiftSerializer
     permission_classes = [ModulePermission]
@@ -105,6 +107,7 @@ TIMETABLE_PRINT = """
 class TimetableViewSet(viewsets.ModelViewSet):
     """BN-62 → BN-67."""
 
+    search_fields = ("name", "department__name")
     serializer_class = TimetableSerializer
     permission_classes = [ModulePermission]
     permission_module = "planning"

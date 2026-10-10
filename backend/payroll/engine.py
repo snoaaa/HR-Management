@@ -264,7 +264,10 @@ def _children(employee, day):
 
 
 def _str(value):
-    return str(value) if isinstance(value, Decimal) else value
+    """JSON-safe value for the snapshot (amounts and dates as text)."""
+    if isinstance(value, (Decimal, datetime.date)):
+        return str(value) if isinstance(value, Decimal) else value.isoformat()
+    return value
 
 
 # --------------------------------------------------------------------------

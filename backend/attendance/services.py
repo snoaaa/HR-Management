@@ -686,7 +686,14 @@ def payroll_inputs(employee, start, end):
     )
     approved = records.filter(overtime_status="APPROVED")
     unjustified = records.filter(status="ABSENT", absence_justified=False)
+    by_week = {}
+    for record in approved:
+        iso = record.date.isocalendar()
+        key = f"{iso[0]}-W{iso[1]:02d}"
+        by_week[key] = by_week.get(key, 0) + record.overtime_day_minutes / 60
     return {
+        # Overtime tiers are weekly (decree 68/DF/249).
+        "overtime_day_hours_by_week": by_week,
         "overtime_day_hours": sum(r.overtime_day_minutes for r in approved) / 60,
         "overtime_night_hours": sum(r.overtime_night_minutes for r in approved) / 60,
         "overtime_rest_day_hours": sum(r.overtime_rest_day_minutes for r in approved)

@@ -1,21 +1,26 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
+from django.http import HttpResponse
+
 from core.exports import export_rows
+from core.pdf import render_pdf
 from users.permissions import ModulePermission, has_module_permission, scope_employees
 from users.utils import log_audit_action
 
 from .models import (
+    CorrectionRequest,
     EducationAndExperience,
     Employee,
     EmployeeDocument,
     EmployeeHistory,
     FamilyMember,
 )
+from .pdf_templates import RECORD_TEMPLATE
 from .serializers import (
     EducationAndExperienceSerializer,
     EmployeeDocumentSerializer,
@@ -41,6 +46,9 @@ EXPORT_COLUMNS = [
     ("Status", "status"),
     ("Phone", "phone_number"),
     ("Professional e-mail", "professional_email"),
+    ("City", "city"),
+    ("CNPS number", "social_insurance_number"),
+    ("NIU", "tax_identification_number"),
 ]
 
 
@@ -52,7 +60,13 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
     permission_classes = [ModulePermission]
     permission_module = "employees"
-    action_permissions = {"archive": "modify", "export": "export", "me": "consult"}
+    action_permissions = {
+        "archive": "modify",
+        "export": "export",
+        "me": "consult",
+        "my_data": "consult",
+        "record": "print",
+    }
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -198,6 +212,57 @@ class EmployeeViewSet(viewsets.ModelViewSet):
             title="Employee list",
         )
 
+    @action(detail=True, methods=["get"])
+    def record(self, request, pk=None):
+        """M-12: the complete employee record sheet as a PDF."""
+        employee = self.get_object()
+        photo_path = None
+        if employee.photograph:
+            try:
+                photo_path = employee.photograph.path
+            except (ValueError, NotImplementedError):
+                photo_path = None
+        contract = (
+            employee.contracts.filter(status="ACTIVE").order_by("-start_date").first()
+        )
+        pdf = render_pdf(
+            RECORD_TEMPLATE,
+            {
+                "e": employee,
+                "photo_path": photo_path,
+                "contract": contract,
+                "family": list(employee.family_members.all()),
+                "education": list(employee.education_experience.all()),
+            },
+            footer_text=f"Employee record {employee.matriculation_number}",
+        )
+        log_audit_action(
+            request.user,
+            f"Printed the record of {employee.full_name}",
+            "Employees",
+            request,
+        )
+        response = HttpResponse(pdf, content_type="application/pdf")
+        response["Content-Disposition"] = (
+            f'inline; filename="record-{employee.matriculation_number}.pdf"'
+        )
+        return response
+
+    @action(detail=False, methods=["get"], url_path="me/data")
+    def my_data(self, request):
+        """BN-177: the employee consults every personal item held on him."""
+        employee = Employee.objects.filter(user=request.user).first()
+        if employee is None:
+            return Response(
+                {"detail": "No employee record is linked to this account."}, status=404
+            )
+        log_audit_action(
+            request.user, "Downloaded own personal data", "Employees", request
+        )
+        response = Response(personal_data(employee, request.user))
+        response["Content-Disposition"] = 'attachment; filename="my-personal-data.json"'
+        return response
+
     @action(detail=False, methods=["get"])
     def me(self, request):
         """The employee record linked to the logged-in user (self-service)."""
@@ -273,3 +338,86 @@ class EmployeeHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         return EmployeeHistory.objects.filter(
             employee_id=self.kwargs["employee_pk"]
         ).order_by("-modification_date")
+
+
+class CorrectionRequestSerializer(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source="employee.full_name", read_only=True)
+    field_label = serializers.CharField(source="get_field_name_display", read_only=True)
+
+    class Meta:
+        model = CorrectionRequest
+        fields = "__all__"
+        read_only_fields = ("employee", "current_value", "status", "decision_comment")
+
+
+class CorrectionRequestViewSet(viewsets.ModelViewSet):
+    """BN-148: request of correction of a personal item, approved by HR."""
+
+    serializer_class = CorrectionRequestSerializer
+    permission_classes = [ModulePermission]
+    permission_module = "employees"
+    action_permissions = {"create": "consult"}
+    http_method_names = ["get", "post", "head", "options"]
+
+    def get_queryset(self):
+        return scope_employees(
+            self.request.user,
+            CorrectionRequest.objects.select_related("employee"),
+            "employee__",
+        )
+
+    def perform_create(self, serializer):
+        from notifications.services import start_approval
+
+        employee = Employee.objects.filter(user=self.request.user).first()
+        if employee is None:
+            raise PermissionDenied("No employee record is linked to this account.")
+        field = serializer.validated_data["field_name"]
+        current = getattr(employee, field)
+        request_item = serializer.save(
+            employee=employee, current_value="" if current is None else str(current)
+        )
+        start_approval(request_item, "PROFILE_CORRECTION", self.request.user)
+
+
+def personal_data(employee, user):
+    """BN-177: every personal item held on the employee (right of access)."""
+    from django.forms.models import model_to_dict
+
+    def clean(instance, exclude=()):
+        data = model_to_dict(
+            instance, exclude=("photograph", "file", "document", *exclude)
+        )
+        return {
+            k: (str(v) if v is not None and not isinstance(v, (int, bool, str)) else v)
+            for k, v in data.items()
+        }
+
+    data = {
+        "record": clean(employee),
+        "family": [clean(f, ("employee",)) for f in employee.family_members.all()],
+        "documents": [clean(d, ("employee",)) for d in employee.documents.all()],
+        "education_experience": [
+            clean(e, ("employee",)) for e in employee.education_experience.all()
+        ],
+        "history": [clean(h, ("employee",)) for h in employee.history.all()],
+        "contracts": [clean(c, ("employee",)) for c in employee.contracts.all()],
+        "leave_requests": [
+            clean(r, ("employee",)) for r in employee.leave_requests.all()
+        ],
+        "payslips": [
+            {
+                "period": str(p.period),
+                "gross": str(p.gross),
+                "net_payable": str(p.net_payable),
+            }
+            for p in employee.payslips.filter(status="VALIDATED")
+        ],
+        "account": {
+            "username": user.username,
+            "email": user.email,
+            "role": user.role,
+            "last_login": str(user.last_login),
+        },
+    }
+    return data

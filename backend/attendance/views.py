@@ -76,6 +76,7 @@ def _scoped_employee(user, employee_id):
 class CalendarViewSet(viewsets.ModelViewSet):
     """BN-61 / BN-08: working calendar per site."""
 
+    search_fields = ("name", "site__name")
     queryset = WorkingCalendar.objects.select_related("site")
     serializer_class = WorkingCalendarSerializer
     permission_classes = [ModulePermission]
@@ -83,6 +84,7 @@ class CalendarViewSet(viewsets.ModelViewSet):
 
 
 class PublicHolidayViewSet(viewsets.ModelViewSet):
+    search_fields = ("name",)
     queryset = PublicHoliday.objects.select_related("site")
     serializer_class = PublicHolidaySerializer
     permission_classes = [ModulePermission]
@@ -93,6 +95,7 @@ class PublicHolidayViewSet(viewsets.ModelViewSet):
 class WorkScheduleViewSet(viewsets.ModelViewSet):
     """BN-59: work schedule models."""
 
+    search_fields = ("name", "code")
     queryset = WorkSchedule.objects.prefetch_related("days")
     serializer_class = WorkScheduleSerializer
     permission_classes = [ModulePermission]

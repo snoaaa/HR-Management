@@ -45,6 +45,7 @@ def _scoped_employee(user, employee_id):
 class LeaveTypeViewSet(viewsets.ModelViewSet):
     """BN-46 / BN-47."""
 
+    search_fields = ("name", "code")
     queryset = LeaveType.objects.all()
     serializer_class = LeaveTypeSerializer
     permission_classes = [ModulePermission]
@@ -62,6 +63,7 @@ class LeaveTypeViewSet(viewsets.ModelViewSet):
 class EntitlementRuleViewSet(viewsets.ModelViewSet):
     """BN-48: dated acquisition rules."""
 
+    search_fields = ("name",)
     queryset = EntitlementRule.objects.all()
     serializer_class = EntitlementRuleSerializer
     permission_classes = [ModulePermission]

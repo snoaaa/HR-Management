@@ -20,6 +20,37 @@ DEFAULT_SETTINGS = {
         "1",
         "Number of renewals allowed for a fixed-term contract",
     ),
+    "LEGAL_WEEKLY_REST_DAY": (
+        "6",
+        "Legal weekly rest day for jours ouvrables (0=Monday, 6=Sunday)",
+    ),
+    "FIXED_TERM_MAX_MONTHS": (
+        "24",
+        "Maximum duration of a fixed-term contract, renewals included (art. 25)",
+    ),
+    "TRIAL_MAX_MONTHS": ("6", "Maximum trial period, renewal included (art. 28)"),
+    "ACCOUNTING_BREAKDOWN": (
+        "DEPARTMENT",
+        "Payroll entry: CONSOLIDATED, DEPARTMENT or COST_CENTRE (BN-133, OP-02)",
+    ),
+    "ESCALATION_DAYS": (
+        "3",
+        "Days without answer before a request is escalated (BN-168)",
+    ),
+    "TWO_FACTOR_ENFORCED": (
+        "false",
+        "Require a second factor for the profiles below (BN-176)",
+    ),
+    "TWO_FACTOR_ROLES": (
+        "PAYROLL_OFFICER,HR_MANAGER,ACCOUNTANT",
+        "Profiles with access to payroll (BN-176)",
+    ),
+    "RETENTION_YEARS": (
+        "10",
+        "Retention of archived personal records, in years (BN-177, OP-05)",
+    ),
+    "BACKUP_KEEP": ("30", "Number of daily backups kept (BN-183)"),
+    "AUTO_BACKUP": ("true", "Back up the data every day with the daily job (NF-05)"),
     "LEAVE_TRACKING_START_YEAR": (
         "2026",
         "First year whose leave balances are computed",

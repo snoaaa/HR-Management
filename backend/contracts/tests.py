@@ -215,3 +215,49 @@ class ContractTests(TestCase):
         self.assertEqual(
             client_for(head).get(f"/api/contracts/{contract_id}/").status_code, 403
         )
+
+
+class LabourCodeContractTests(TestCase):
+    """Labour Code art. 25 and 28, legal notice scale."""
+
+    def setUp(self):
+        self.structure = make_structure()
+        self.hr = make_user("hr", User.Roles.HR_MANAGER)
+        self.employee = make_employee(self.structure)
+        self.client_hr = client_for(self.hr)
+
+    def post(self, **extra):
+        payload = {
+            "employee": self.employee.id,
+            "contract_type": "FIXED_TERM",
+            "start_date": "2026-01-01",
+            "end_date": "2026-12-31",
+            "base_salary": "250000",
+        }
+        payload.update(extra)
+        return self.client_hr.post("/api/contracts/", payload, format="json")
+
+    def test_fixed_term_limited_to_two_years(self):
+        self.assertEqual(self.post().status_code, 201)
+        response = self.post(end_date="2028-06-30")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("art. 25", response.json()["detail"])
+
+    def test_trial_period_maximum(self):
+        response = self.post(trial_period_end="2026-09-30")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("art. 28", response.json()["detail"])
+
+    def test_legal_notice_by_seniority(self):
+        contract = Contract.objects.create(
+            employee=self.employee,
+            contract_type="PERMANENT",
+            start_date=datetime.date(2019, 1, 1),
+            base_salary=Decimal("250000"),
+            notice_period_days=15,
+        )
+        services.activate(contract, self.hr)
+        # About 7 years of seniority: 60 days in the default scale.
+        self.assertEqual(
+            services.legal_notice_days(contract, datetime.date(2026, 3, 1)), 60
+        )

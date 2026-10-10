@@ -24,6 +24,13 @@ MODULES = (
     "documents",
     "users",
     "audit",
+    "accounting",
+    "careers",
+    "reports",
+    "evaluation",
+    "recruitment",
+    "training",
+    "imports",
 )
 ACTIONS = ("consult", "create", "modify", "delete", "validate", "print", "export")
 
@@ -90,6 +97,61 @@ DEFAULT_MATRIX = {
         "consult": {R.SYSTEM_ADMINISTRATOR, R.HR_MANAGER},
         "export": {R.SYSTEM_ADMINISTRATOR, R.HR_MANAGER},
     },
+    # M-13: the accountant holds the payroll accounts.
+    "accounting": {
+        **_full({R.ACCOUNTANT}),
+        "consult": {
+            R.ACCOUNTANT,
+            R.PAYROLL_OFFICER,
+            R.HR_MANAGER,
+            R.GENERAL_MANAGEMENT,
+        },
+        "export": {R.ACCOUNTANT, R.PAYROLL_OFFICER},
+        "print": {R.ACCOUNTANT, R.PAYROLL_OFFICER, R.HR_MANAGER},
+        "create": {R.ACCOUNTANT, R.PAYROLL_OFFICER},
+    },
+    # M-08: heads of department propose, HR records, HR manager validates.
+    "careers": {
+        **_full(HR),
+        "consult": HR
+        | {R.HEAD_OF_DEPARTMENT, R.GENERAL_MANAGEMENT, R.PAYROLL_OFFICER, R.EMPLOYEE},
+        "create": HR | {R.HEAD_OF_DEPARTMENT},
+        "validate": {R.HR_MANAGER, R.GENERAL_MANAGEMENT},
+        "delete": {R.HR_MANAGER},
+    },
+    # M-15: dashboards for every profile, reports for management.
+    "reports": {
+        "consult": EVERYONE,
+        "create": HR | {R.GENERAL_MANAGEMENT, R.PAYROLL_OFFICER, R.ACCOUNTANT},
+        "modify": HR | {R.GENERAL_MANAGEMENT, R.PAYROLL_OFFICER, R.ACCOUNTANT},
+        "delete": HR | {R.GENERAL_MANAGEMENT},
+        "export": HR
+        | {R.GENERAL_MANAGEMENT, R.PAYROLL_OFFICER, R.ACCOUNTANT, R.HEAD_OF_DEPARTMENT},
+        "print": EVERYONE,
+    },
+    # M-10: managers evaluate their team, employees self-evaluate.
+    "evaluation": {
+        **_full(HR),
+        "consult": EVERYONE,
+        "modify": HR | {R.HEAD_OF_DEPARTMENT, R.EMPLOYEE},
+        "validate": HR | {R.HEAD_OF_DEPARTMENT},
+        "print": EVERYONE,
+    },
+    # M-03: heads express needs, HR recruits.
+    "recruitment": {
+        **_full(HR),
+        "consult": HR | {R.HEAD_OF_DEPARTMENT, R.GENERAL_MANAGEMENT},
+        "create": HR | {R.HEAD_OF_DEPARTMENT},
+        "validate": {R.HR_MANAGER, R.GENERAL_MANAGEMENT},
+    },
+    # M-09: training plan and sessions.
+    "training": {
+        **_full(HR),
+        "consult": EVERYONE,
+        "create": HR | {R.HEAD_OF_DEPARTMENT},
+    },
+    # BN-179 / BN-183: initial data import and backups.
+    "imports": _full({R.SYSTEM_ADMINISTRATOR, R.HR_MANAGER}),
 }
 
 # Roles that see every employee record; the others are restricted (BN-171).
@@ -114,10 +176,19 @@ def get_permissions_for_role(role):
     return result
 
 
+def is_admin(user):
+    """The system administrator has access to every module and every action."""
+    return bool(
+        user
+        and user.is_authenticated
+        and (user.is_superuser or user.role == R.SYSTEM_ADMINISTRATOR)
+    )
+
+
 def has_module_permission(user, module, action):
     if not user or not user.is_authenticated:
         return False
-    if user.is_superuser:
+    if is_admin(user):
         return True
     cache = getattr(user, "_module_permissions", None)
     if cache is None:
@@ -186,7 +257,7 @@ def scope_employees(user, queryset, field_prefix=""):
     """
     from django.db.models import Q
 
-    if user.is_superuser or user.role in ORGANISATION_SCOPE_ROLES:
+    if is_admin(user) or user.role in ORGANISATION_SCOPE_ROLES:
         return queryset
     own = Q(**{f"{field_prefix}user": user})
     if user.role == R.HEAD_OF_DEPARTMENT or user.managed_departments.exists():
@@ -199,7 +270,9 @@ def can_view_salary(user, employee=None):
     """BN-172: only payroll / HR profiles explicitly authorised see salaries."""
     if not user or not user.is_authenticated:
         return False
-    if user.role not in SALARY_ROLES and not user.is_superuser:
+    if is_admin(user):
+        return True
+    if user.role not in SALARY_ROLES:
         # An employee may always see their own pay (payslips, BN-150).
         return bool(employee and employee.user_id == user.id)
     if user.role == R.HR_OFFICER and employee is not None:

@@ -79,8 +79,22 @@ def change_status(period, new_status, user, comment=""):
     if new_status == "PAID" and not period.payment_date:
         period.payment_date = timezone.now().date()
         period.save(update_fields=["payment_date"])
+    if new_status == "PAID":
+        _accounting("generate_payment_entry", period, user)  # BN-134
+    if new_status == "POSTED" and not period.entries.filter(source="PAYROLL").exists():
+        raise PayrollError("The payroll entry has not been generated.")
     _transition(period, new_status, user, comment)
     return period
+
+
+def _accounting(function, *args):
+    """Run an accounting function; its errors block the payroll operation."""
+    from accounting import services as accounting
+
+    try:
+        return getattr(accounting, function)(*args)
+    except accounting.AccountingError as exc:
+        raise PayrollError(f"Accounting: {exc}")
 
 
 def _check_editable(period):
@@ -125,12 +139,25 @@ def _element(code):
 
 
 def _split_overtime(hours, params):
+    """
+    Split the overtime of ONE week into the legal tiers (decree 68/DF/249:
+    41st to 48th hour +20 %, 49th to 56th +30 %, beyond +40 %). The tier
+    sizes (8 h and 8 h) are the parameters OT_TIER1_HOURS / OT_TIER2_HOURS.
+    """
     tier1 = Decimal(params.get("OT_TIER1_HOURS", 0))
     tier2 = Decimal(params.get("OT_TIER2_HOURS", 0))
     first = min(hours, tier1)
     second = min(max(hours - tier1, ZERO), tier2)
     third = max(hours - tier1 - tier2, ZERO)
     return first, second, third
+
+
+def _split_weekly_overtime(by_week, params):
+    totals = [ZERO, ZERO, ZERO]
+    for hours in by_week.values():
+        for index, part in enumerate(_split_overtime(Decimal(str(hours)), params)):
+            totals[index] += part
+    return [t.quantize(Decimal("0.01")) for t in totals]
 
 
 @transaction.atomic
@@ -157,10 +184,8 @@ def pull_inputs(period, user, employees=None):
         ).delete()
         rows = []
         att = attendance_inputs(employee, start, end)
-        day_hours = Decimal(str(att["overtime_day_hours"]))
-        for code, hours in zip(
-            ("OT_TIER1", "OT_TIER2", "OT_TIER3"), _split_overtime(day_hours, params)
-        ):
+        tiers = _split_weekly_overtime(att["overtime_day_hours_by_week"], params)
+        for code, hours in zip(("OT_TIER1", "OT_TIER2", "OT_TIER3"), tiers):
             if hours:
                 rows.append((code, hours, None, "ATTENDANCE", "Approved overtime"))
         for code, key in (
@@ -390,6 +415,8 @@ def validate(period, user):
     from attendance.services import lock_period
 
     lock_period(period.year, period.month)
+    # BN-131: the accounting entry is generated at the validation.
+    _accounting("generate_payroll_entry", period, user)
     return period
 
 
@@ -418,6 +445,8 @@ def reverse(period, user, reason):
         if loan_repayment.loan.status == "REPAID":
             loan_repayment.loan.status = "ACTIVE"
             loan_repayment.loan.save(update_fields=["status"])
+    # BN-138: the entries are corrected by reversal, never deleted.
+    _accounting("reverse_payroll_period", period, user)
     period.provisions.all().delete()
     _transition(period, "IN_PREPARATION", user, f"Reversal: {reason}")
     from attendance.services import unlock_period

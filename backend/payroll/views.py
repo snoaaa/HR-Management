@@ -170,18 +170,21 @@ class ParameterViewSet(SettingViewSet):
 
 
 class ScaleViewSet(SettingViewSet):
+    search_fields = ("code", "name")
     queryset = Scale.objects.all()
     serializer_class = ScaleSerializer
     object_type = "Scale"
 
 
 class StatutoryDeductionViewSet(SettingViewSet):
+    search_fields = ("code", "name")
     queryset = StatutoryDeduction.objects.all()
     serializer_class = StatutoryDeductionSerializer
     object_type = "Statutory deduction"
 
 
 class SalaryElementViewSet(SettingViewSet):
+    search_fields = ("code", "name")
     queryset = SalaryElement.objects.all()
     serializer_class = SalaryElementSerializer
     object_type = "Salary element"
@@ -198,6 +201,12 @@ class SalaryElementViewSet(SettingViewSet):
 
 
 class ElementValueViewSet(SettingViewSet):
+    search_fields = (
+        "element__code",
+        "element__name",
+        "employee__surname",
+        "department__name",
+    )
     serializer_class = ElementValueSerializer
     object_type = "Element value"
     filterset_fields = ("element", "employee", "department", "classification")
@@ -213,6 +222,7 @@ class ElementValueViewSet(SettingViewSet):
 
 
 class SalaryGridViewSet(SettingViewSet):
+    search_fields = ("classification__category", "classification__grade")
     queryset = SalaryGrid.objects.select_related("classification")
     serializer_class = SalaryGridSerializer
     object_type = "Salary grid"
@@ -607,6 +617,12 @@ class PayslipViewSet(viewsets.ReadOnlyModelViewSet):
 class VariableInputViewSet(viewsets.ModelViewSet):
     """BN-94: manual capture of the variable elements of the period."""
 
+    search_fields = (
+        "employee__surname",
+        "employee__given_names",
+        "element__code",
+        "element__name",
+    )
     serializer_class = VariableInputSerializer
     permission_classes = [ModulePermission]
     permission_module = "payroll"
@@ -629,6 +645,11 @@ class VariableInputViewSet(viewsets.ModelViewSet):
 class LoanViewSet(viewsets.ModelViewSet):
     """BN-98."""
 
+    search_fields = (
+        "employee__surname",
+        "employee__given_names",
+        "employee__matriculation_number",
+    )
     serializer_class = LoanSerializer
     permission_classes = [ModulePermission]
     permission_module = "payroll"
@@ -652,6 +673,7 @@ class LoanViewSet(viewsets.ModelViewSet):
 class ThirdPartyDeductionViewSet(viewsets.ModelViewSet):
     """BN-99."""
 
+    search_fields = ("employee__surname", "employee__given_names", "beneficiary")
     serializer_class = ThirdPartyDeductionSerializer
     permission_classes = [ModulePermission]
     permission_module = "payroll"

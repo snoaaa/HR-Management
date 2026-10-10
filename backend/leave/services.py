@@ -44,7 +44,26 @@ def count_days(leave_type, employee, start, end):
         raise LeaveError("The end date is before the start date.")
     if leave_type.counting_rule == "CALENDAR_DAYS":
         return Decimal((end - start).days + 1)
+    if leave_type.counting_rule == "OUVRABLE_DAYS":
+        return Decimal(ouvrable_days_between(start, end, employee.workplace))
     return Decimal(working_days_between(start, end, employee.workplace))
+
+
+def ouvrable_days_between(start, end, site=None):
+    """
+    Jours ouvrables (Labour Code art. 89): every day except the legal weekly
+    rest day (Sunday by default, setting LEGAL_WEEKLY_REST_DAY) and the
+    public holidays.
+    """
+    from attendance.services import holiday_on
+
+    rest_day = get_int_setting("LEGAL_WEEKLY_REST_DAY", 6)
+    count = 0
+    for day in daterange(start, end):
+        if day.weekday() == rest_day or holiday_on(day, site) is not None:
+            continue
+        count += 1
+    return count
 
 
 # --------------------------------------------------------------------------
@@ -114,8 +133,28 @@ def _extra_days_for(rule, years):
     return extra
 
 
+def _age(birth, day):
+    if not birth:
+        return 99
+    return day.year - birth.year - ((day.month, day.day) < (birth.month, birth.day))
+
+
+def _young_children(employee, day, age_limit):
+    """Dependent children under `age_limit` years at `day`."""
+    count = 0
+    for child in employee.family_members.filter(relationship="CHILD"):
+        if child.date_of_birth <= day and _age(child.date_of_birth, day) < age_limit:
+            count += 1
+    return count
+
+
 def acquired_days(employee, year, until):
-    """Days acquired during `year` for the months completed at `until`."""
+    """
+    Days acquired during `year` for the months completed at `until`.
+    Labour Code: 1.5 jours ouvrables per month of effective service
+    (2.5 under 18), + 2 days per 5 years of seniority, + extra days for
+    mothers per child under 6; every value comes from the dated rule.
+    """
     total = Decimal("0")
     for month in range(1, 13):
         first = datetime.date(year, month, 1)
@@ -128,7 +167,14 @@ def acquired_days(employee, year, until):
         month_length = Decimal(last.day)
         fraction = Decimal(_service_days_in(employee, first, last)) / month_length
         yearly_extra = _extra_days_for(rule, seniority_years(employee, last))
-        total += fraction * (rule.days_per_month + yearly_extra / 12)
+        if employee.sex == "F" and rule.mother_extra_days_per_child:
+            yearly_extra += rule.mother_extra_days_per_child * _young_children(
+                employee, last, rule.mother_child_age_limit
+            )
+        monthly = rule.days_per_month
+        if _age(employee.date_of_birth, last) < rule.minor_age_limit:
+            monthly = max(monthly, rule.minor_days_per_month)
+        total += fraction * (monthly + yearly_extra / 12)
     return q2(total)
 
 
@@ -467,7 +513,7 @@ def payroll_inputs(employee, start, end):
         last = min(end, request.effective_end_date)
         if last < first:
             continue
-        days = Decimal(working_days_between(first, last, employee.workplace))
+        days = count_days(request.leave_type, employee, first, last)
         if request.leave_type.generates_deduction or not request.leave_type.is_paid:
             unpaid_days += days
         else:

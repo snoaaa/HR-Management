@@ -101,6 +101,7 @@ class ApprovalTaskViewSet(viewsets.ReadOnlyModelViewSet):
 class ApprovalCircuitViewSet(viewsets.ModelViewSet):
     """BN-166: approval circuits per type of request."""
 
+    search_fields = ("name", "request_type")
     queryset = ApprovalCircuit.objects.prefetch_related("levels")
     serializer_class = ApprovalCircuitSerializer
     permission_classes = [IsSystemAdminOrHRManager]

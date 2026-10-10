@@ -50,6 +50,13 @@ class EmployeeSerializer(serializers.ModelSerializer):
     )
     full_name = serializers.CharField(read_only=True)
     seniority_years = serializers.FloatField(read_only=True)
+    age = serializers.IntegerField(read_only=True)
+    number_of_children = serializers.IntegerField(read_only=True)
+    region_label = serializers.CharField(source="get_region_display", read_only=True)
+    title_label = serializers.CharField(source="get_title_display", read_only=True)
+    education_level_label = serializers.CharField(
+        source="get_education_level_display", read_only=True
+    )
 
     class Meta:
         model = Employee

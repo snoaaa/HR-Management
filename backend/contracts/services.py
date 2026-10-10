@@ -3,6 +3,7 @@ Business rules of M-04. Views stay thin and call these functions.
 """
 
 import datetime
+from decimal import Decimal
 
 from django.db import transaction
 from django.utils import timezone
@@ -88,9 +89,30 @@ def _check_overlap(contract):
             )
 
 
+def _months_between(start, end):
+    return (
+        (end.year - start.year) * 12
+        + (end.month - start.month)
+        + (1 if end.day >= start.day else 0)
+    )
+
+
 def validate_contract(contract):
     if contract.is_fixed_term and not contract.end_date:
         raise ContractError("A fixed-term contract requires an end date.")
+    if contract.contract_type == "FIXED_TERM" and contract.end_date:
+        maximum = get_int_setting("FIXED_TERM_MAX_MONTHS", 24)
+        if _months_between(contract.start_date, contract.end_date) > maximum:
+            raise ContractError(
+                f"A fixed-term contract cannot exceed {maximum} months, renewals "
+                "included (Labour Code art. 25)."
+            )
+    if contract.trial_period_end:
+        maximum = get_int_setting("TRIAL_MAX_MONTHS", 6)
+        if _months_between(contract.start_date, contract.trial_period_end) > maximum:
+            raise ContractError(
+                f"The trial period cannot exceed {maximum} months (Labour Code art. 28)."
+            )
     if contract.end_date and contract.end_date < contract.start_date:
         raise ContractError("The end date is before the start date.")
     if contract.trial_period_end and contract.trial_period_end < contract.start_date:
@@ -178,6 +200,15 @@ def renew(contract, new_end_date, user):
         )
     if contract.end_date and new_end_date <= contract.end_date:
         raise ContractError("The new end date must be after the current one.")
+    total = get_int_setting("FIXED_TERM_MAX_MONTHS", 24)
+    if (
+        contract.contract_type == "FIXED_TERM"
+        and _months_between(contract.start_date, new_end_date) > total
+    ):
+        raise ContractError(
+            f"With this renewal the contract would exceed {total} months "
+            "(Labour Code art. 25): a permanent contract must be offered."
+        )
     renewal = ContractRenewal.objects.create(
         contract=contract,
         previous_end_date=contract.end_date,
@@ -220,6 +251,20 @@ def resume(contract, end_date, user):
     return suspension
 
 
+def legal_notice_days(contract, day):
+    """
+    Default notice: the contractual notice, at least the legal notice of the
+    scale NOTICE_DAYS by seniority (dated payroll scale, to validate).
+    """
+    try:
+        from payroll.engine import apply_scale, scale_at
+    except ImportError:
+        return contract.notice_period_days
+    years = Decimal(seniority_days(contract.employee, day)) / Decimal("365.25")
+    legal = int(apply_scale(scale_at("NOTICE_DAYS", day), years) or 0)
+    return max(contract.notice_period_days, legal)
+
+
 def leave_balance_of(employee, day):
     try:
         from leave.services import remaining_balance
@@ -239,7 +284,9 @@ def terminate(contract, data, user):
         raise ContractError("The termination date is before the start of the contract.")
     if data["notification_date"] > data["termination_date"]:
         raise ContractError("The notification date is after the last working day.")
-    data.setdefault("notice_days", contract.notice_period_days)
+    data.setdefault(
+        "notice_days", legal_notice_days(contract, data["termination_date"])
+    )
     if "leave_balance_days" not in data:
         data["leave_balance_days"] = leave_balance_of(
             contract.employee, data["termination_date"]

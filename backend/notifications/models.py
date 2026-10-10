@@ -62,6 +62,10 @@ class ApprovalCircuit(models.Model):
         ("CLOCKING_REGULARISATION", "Clocking regularisation"),
         ("SHIFT_SWAP", "Shift exchange"),
         ("CONTRACT_AMENDMENT", "Contract amendment"),
+        ("CAREER_ACT", "Career act (promotion, transfer, sanction...)"),
+        ("RECRUITMENT_NEED", "Recruitment need"),
+        ("PROFILE_CORRECTION", "Correction of personal data"),
+        ("TRAINING_REQUEST", "Training request"),
     )
 
     request_type = models.CharField(max_length=40, choices=REQUEST_TYPES, unique=True)
@@ -134,6 +138,8 @@ class ApprovalTask(models.Model):
     )
     decided_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # BN-168: request escalated when unanswered beyond the configured delay.
+    escalated_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]

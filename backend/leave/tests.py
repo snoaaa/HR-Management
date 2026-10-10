@@ -81,7 +81,32 @@ class LeaveTests(TestCase):
             datetime.date(2026, 5, 18),
             datetime.date(2026, 5, 24),
         )
-        self.assertEqual(days, 4)
+        # Jours ouvrables (art. 89): Saturday counts, Sunday does not.
+        self.assertEqual(days, 5)
+
+    def test_minor_and_mother_entitlements(self):
+        from employees.models import FamilyMember
+
+        until = datetime.date(2026, 9, 30)
+        self.employee.date_of_birth = datetime.date(2010, 1, 1)  # under 18
+        self.employee.save()
+        # 9 months x (2.5 + 2 seniority days / 12)
+        self.assertEqual(
+            services.acquired_days(self.employee, 2026, until), Decimal("24.00")
+        )
+        self.employee.date_of_birth = datetime.date(1990, 1, 1)
+        self.employee.sex = "F"
+        self.employee.save()
+        FamilyMember.objects.create(
+            employee=self.employee,
+            name="Child",
+            date_of_birth=datetime.date(2023, 1, 1),
+            relationship="CHILD",
+        )
+        # 9 months x (1.5 + (2 seniority + 2 per child under 6) / 12)
+        self.assertEqual(
+            services.acquired_days(self.employee, 2026, until), Decimal("16.50")
+        )
 
     def test_request_goes_through_manager_then_hr(self):
         start = next_monday()

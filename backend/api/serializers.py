@@ -13,6 +13,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def validate(self, attrs):
         data = super().validate(attrs)
+        if self.user.totp_enabled:
+            # BN-176: the tokens are only delivered after the second factor.
+            from django.core import signing
+
+            return {
+                "two_factor_required": True,
+                "challenge": signing.dumps({"uid": self.user.id}, salt="hrms-2fa"),
+            }
 
         # Add custom user data to the response payload
         data["user"] = {
@@ -23,6 +31,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             "last_name": self.user.last_name,
             "role": self.user.role,
             "requires_password_change": self.user.requires_password_change,
+            "requires_two_factor_setup": self.user.requires_two_factor_setup,
+            "totp_enabled": self.user.totp_enabled,
         }
 
         return data

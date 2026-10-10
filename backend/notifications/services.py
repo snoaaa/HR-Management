@@ -25,6 +25,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from users.models import User
+from users.permissions import is_admin
 
 from .models import (
     ApprovalCircuit,
@@ -186,7 +187,7 @@ def pending_tasks(target):
 def can_decide(task, user):
     if task.status != "PENDING":
         return False
-    if user.is_superuser:
+    if is_admin(user):
         return True
     if task.approver_user_id:
         return task.approver_user_id == user.id
@@ -197,11 +198,49 @@ def tasks_for(user):
     from django.db.models import Q
 
     queryset = ApprovalTask.objects.filter(status="PENDING")
-    if user.is_superuser:
+    if is_admin(user):
         return queryset
     return queryset.filter(
         Q(approver_user=user) | Q(approver_user__isnull=True, approver_role=user.role)
     )
+
+
+def escalate_overdue(now=None):
+    """
+    BN-168: a request unanswered beyond ESCALATION_DAYS is escalated to the
+    manager of the approver and to the HR manager.
+    """
+    from datetime import timedelta
+
+    from core.models import get_int_setting
+
+    now = now or timezone.now()
+    delay = get_int_setting("ESCALATION_DAYS", 3)
+    escalated = 0
+    for task in ApprovalTask.objects.filter(
+        status="PENDING",
+        escalated_at__isnull=True,
+        created_at__lte=now - timedelta(days=delay),
+    ):
+        recipients = set(users_with_roles(User.Roles.HR_MANAGER))
+        if task.approver_user is not None:
+            from employees.models import Employee
+
+            approver_employee = Employee.objects.filter(user=task.approver_user).first()
+            manager = line_manager_of(approver_employee) if approver_employee else None
+            if manager is not None:
+                recipients.add(manager)
+        notify(
+            list(recipients),
+            f"Escalation: {task.summary}",
+            f"This request has been waiting for a decision for more than {delay} day(s).",
+            "/approvals",
+            "APPROVAL",
+        )
+        task.escalated_at = now
+        task.save(update_fields=["escalated_at"])
+        escalated += 1
+    return escalated
 
 
 @transaction.atomic

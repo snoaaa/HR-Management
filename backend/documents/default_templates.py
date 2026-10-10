@@ -8,7 +8,7 @@ code: (name, category, body, footer)
 SIGNATURES = """
 <br/><table class="signature"><tr>
 <td width="50%"><b>The employee</b><br/>{{ employee.full_name }}<br/>(read and approved)</td>
-<td width="50%"><b>For the employer</b><br/>{{ company.legal_representative|default:"" }}</td>
+<td width="50%"><b>For the employer</b><br/>{{ company.legal_representative|default:"" }}{% if company.legal_representative_title %}, {{ company.legal_representative_title }}{% endif %}</td>
 </tr></table>
 """
 
@@ -96,7 +96,7 @@ to <b>{{ end_date|date:"d/m/Y" }}</b>, as <b>{{ position }}</b>.</p>
 <p>{{ employee.given_names }} {{ employee.surname }} leaves the organisation free of any commitment.</p>
 <p>This certificate is issued to serve and be used as required by law.</p>
 <p>Done on {{ today|date:"d/m/Y" }}.</p>
-<br/><p><b>{{ company.legal_representative }}</b></p>
+<br/><p><b>{{ company.legal_representative }}</b>{% if company.legal_representative_title %}<br/>{{ company.legal_representative_title }}{% endif %}</p>
 """,
     "Work certificate",
 )
@@ -144,7 +144,7 @@ inclusive.</p>
 <p>The employee will resume work on the first working day following the end of the leave.</p>
 <p>Remaining balance after this leave: {{ balance.remaining }} day(s).</p>
 <p>Done on {{ today|date:"d/m/Y" }}.</p>
-<br/><p><b>{{ company.legal_representative }}</b></p>
+<br/><p><b>{{ company.legal_representative }}</b>{% if company.legal_representative_title %}<br/>{{ company.legal_representative_title }}{% endif %}</p>
 """,
     "Leave decision",
 )
@@ -163,7 +163,7 @@ LEAVE_CERTIFICATE = (
 to {{ leave.effective_end_date|date:"d/m/Y" }} ({{ leave.days }} day(s)).</p>
 <p>This certificate is issued to serve and be used as required.</p>
 <p>Done on {{ today|date:"d/m/Y" }}.</p>
-<br/><p><b>{{ company.legal_representative }}</b></p>
+<br/><p><b>{{ company.legal_representative }}</b>{% if company.legal_representative_title %}<br/>{{ company.legal_representative_title }}{% endif %}</p>
 """,
     "Leave certificate",
 )
@@ -213,7 +213,7 @@ Period: {{ period.start_date|date:"d/m/Y" }} – {{ period.end_date|date:"d/m/Y"
 Days paid: {{ payslip.paid_days }} – Working time: {{ weekly_hours }} h/week
 </td></tr></table>
 <table>
-<thead><tr><th width="8%">Code</th><th width="28%">Item</th><th class="num" width="12%">Base</th><th class="num" width="9%">Qty / rate</th>
+<thead><tr><th width="12%">Code</th><th width="24%">Item</th><th class="num" width="12%">Base</th><th class="num" width="9%">Qty / rate</th>
 <th class="num" width="11%">Gain</th><th class="num" width="11%">Deduction</th><th class="num" width="9%">Empl. rate</th><th class="num" width="12%">Employer</th></tr></thead>
 <tbody>
 {% for line in lines %}<tr>
@@ -365,7 +365,7 @@ EMPLOYMENT_ATTESTATION = (
 and currently holds the position of <b>{{ employee.position.title|default:"" }}</b>
 under a {{ employee.get_contract_type_display|lower }}.</p>
 <p>This attestation is issued at the request of the person concerned to serve and be used as required.</p>
-<p>Done on {{ today|date:"d/m/Y" }}.</p><br/><p><b>{{ company.legal_representative }}</b></p>
+<p>Done on {{ today|date:"d/m/Y" }}.</p><br/><p><b>{{ company.legal_representative }}</b>{% if company.legal_representative_title %}<br/>{{ company.legal_representative_title }}{% endif %}</p>
 """,
     "Employment attestation",
 )
@@ -384,7 +384,7 @@ SALARY_ATTESTATION = (
 receives a monthly base salary of <b>{{ base_salary|money }} {{ currency }}</b>
 {% if average_net %}and received an average monthly net salary of <b>{{ average_net|money }} {{ currency }}</b>
 over the last {{ months }} month(s){% endif %}.</p>
-<p>Done on {{ today|date:"d/m/Y" }}.</p><br/><p><b>{{ company.legal_representative }}</b></p>
+<p>Done on {{ today|date:"d/m/Y" }}.</p><br/><p><b>{{ company.legal_representative }}</b>{% if company.legal_representative_title %}<br/>{{ company.legal_representative_title }}{% endif %}</p>
 """,
     "Salary attestation",
 )
@@ -403,7 +403,7 @@ PRESENCE_ATTESTATION = (
 on the date of this attestation.</p>
 {% if days_present %}<p>Days of presence recorded from {{ start|date:"d/m/Y" }} to {{ end|date:"d/m/Y" }}:
 <b>{{ days_present }}</b>.</p>{% endif %}
-<p>Done on {{ today|date:"d/m/Y" }}.</p><br/><p><b>{{ company.legal_representative }}</b></p>
+<p>Done on {{ today|date:"d/m/Y" }}.</p><br/><p><b>{{ company.legal_representative }}</b>{% if company.legal_representative_title %}<br/>{{ company.legal_representative_title }}{% endif %}</p>
 """,
     "Attestation of presence",
 )
@@ -422,7 +422,7 @@ DECISION_BODY = (
 {% if details %}<p><b>Article 2.</b> {{ details|linebreaksbr }}</p>{% endif %}
 <p><b>Article {% if details %}3{% else %}2{% endif %}.</b> This decision takes effect on
 <b>{{ effective_date|date:"d/m/Y" }}</b>.</p>
-<p>Done on {{ today|date:"d/m/Y" }}.</p><br/><p><b>{{ company.legal_representative }}</b></p>
+<p>Done on {{ today|date:"d/m/Y" }}.</p><br/><p><b>{{ company.legal_representative }}</b>{% if company.legal_representative_title %}<br/>{{ company.legal_representative_title }}{% endif %}</p>
 """
 )
 
@@ -437,6 +437,18 @@ TRANSFER_DECISION = (
     "DECISION",
     "<h1>TRANSFER DECISION</h1>" + DECISION_BODY,
     "Transfer decision",
+)
+SALARY_REVISION_DECISION = (
+    "Salary revision decision",
+    "DECISION",
+    "<h1>SALARY REVISION DECISION</h1>" + DECISION_BODY,
+    "Salary revision",
+)
+ASSIGNMENT_DECISION = (
+    "Temporary assignment decision",
+    "DECISION",
+    "<h1>ASSIGNMENT DECISION</h1>" + DECISION_BODY,
+    "Assignment decision",
 )
 DISCIPLINARY_LETTER = (
     "Disciplinary letter",
@@ -466,6 +478,8 @@ DEFAULT_TEMPLATES = {
     "PROMOTION_DECISION": PROMOTION_DECISION,
     "TRANSFER_DECISION": TRANSFER_DECISION,
     "DISCIPLINARY_LETTER": DISCIPLINARY_LETTER,
+    "SALARY_REVISION_DECISION": SALARY_REVISION_DECISION,
+    "ASSIGNMENT_DECISION": ASSIGNMENT_DECISION,
     "CONTRACT": CONTRACT,
     "AMENDMENT": AMENDMENT,
     "WORK_CERTIFICATE": WORK_CERTIFICATE,

@@ -66,6 +66,20 @@ class PayrollTests(TestCase):
         services.calculate_period(period, self.officer)
         return period, period.payslips.get(employee=self.employee, status="CALCULATED")
 
+    def test_fixed_term_contract_is_calculated(self):
+        # The end date of the contract is kept in the payslip snapshot.
+        other = self.hire(
+            make_user("cdd", User.Roles.EMPLOYEE),
+            "Fixed",
+            datetime.date(2026, 1, 1),
+            contract_type="FIXED_TERM",
+            end_date=datetime.date(2026, 12, 31),
+        )
+        period = self.period()
+        services.calculate_period(period, self.officer)
+        payslip = period.payslips.get(employee=other)
+        self.assertEqual(payslip.snapshot["terms"]["end_date"], "2026-12-31")
+
     def test_reference_payslip(self):
         _, payslip = self.run_payroll()
         detail = lines(payslip)
@@ -132,6 +146,14 @@ class PayrollTests(TestCase):
             payslip.gross,
             D("300000") + detail["OT_TIER1"].amount - detail["ABSENCE"].amount,
         )
+
+    def test_overtime_tiers_are_weekly(self):
+        params = {"OT_TIER1_HOURS": D("8"), "OT_TIER2_HOURS": D("8")}
+        # 10 h one week and 6 h the next: 8 + 2 then 6, not 16 h in a row.
+        tiers = services._split_weekly_overtime({"2026-W37": 10, "2026-W38": 6}, params)
+        self.assertEqual(tiers, [D("14.00"), D("2.00"), D("0.00")])
+        tiers = services._split_weekly_overtime({"2026-W37": 20}, params)
+        self.assertEqual(tiers, [D("8.00"), D("8.00"), D("4.00")])
 
     def test_loan_repayment_and_lock(self):
         loan = Loan.objects.create(

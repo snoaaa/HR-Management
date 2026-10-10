@@ -53,6 +53,7 @@ class DocumentRequestSerializer(serializers.ModelSerializer):
 class DocumentTemplateViewSet(viewsets.ModelViewSet):
     """BN-125: the organisation edits its templates without development."""
 
+    search_fields = ("code", "name")
     queryset = DocumentTemplate.objects.all()
     serializer_class = DocumentTemplateSerializer
     permission_classes = [ModulePermission]

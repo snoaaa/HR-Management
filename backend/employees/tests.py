@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
@@ -167,3 +169,89 @@ class EmployeeAccessTests(TestCase):
     def test_matriculation_numbers_are_unique(self):
         numbers = {self.me.matriculation_number, self.colleague.matriculation_number}
         self.assertEqual(len(numbers), 2)
+
+
+class SelfServiceTests(TestCase):
+    """BN-148 / BN-177."""
+
+    def setUp(self):
+        self.structure = make_structure()
+        self.officer = make_user("officer", User.Roles.HR_OFFICER)
+        self.emp_user = make_user("emp", User.Roles.EMPLOYEE)
+        self.employee = make_employee(self.structure, user=self.emp_user)
+
+    def test_correction_request_approved_by_hr(self):
+        from notifications.models import ApprovalTask
+
+        response = client_for(self.emp_user).post(
+            "/api/employees/corrections/",
+            {
+                "field_name": "address",
+                "requested_value": "Bastos, Yaoundé",
+                "reason": "Moved",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201, response.content)
+        self.assertEqual(response.json()["current_value"], "Akwa")
+        task = ApprovalTask.objects.get(request_type="PROFILE_CORRECTION")
+        client_for(self.officer).post(
+            f"/api/notifications/approvals/{task.id}/decide/",
+            {"decision": "APPROVED"},
+            format="json",
+        )
+        self.employee.refresh_from_db()
+        self.assertEqual(self.employee.address, "Bastos, Yaoundé")
+        self.assertTrue(self.employee.history.filter(field_name="address").exists())
+
+    def test_personal_data_export(self):
+        data = client_for(self.emp_user).get("/api/employees/me/data/").json()
+        self.assertEqual(data["record"]["surname"], "Doe")
+        self.assertEqual(data["account"]["username"], "emp")
+
+    def test_retention(self):
+        from django.core.management import call_command
+
+        self.employee.status = "ARCHIVED"
+        self.employee.date_of_hire = datetime.date(2005, 1, 1)
+        self.employee.save()
+        call_command("apply_retention")
+        self.employee.refresh_from_db()
+        self.assertEqual(self.employee.given_names, "Anonymised")
+        self.assertEqual(self.employee.address, "")
+
+
+class EmployeeRecordAndExportTests(TestCase):
+    def setUp(self):
+        self.structure = make_structure()
+        self.hr = make_user("hr_record", User.Roles.HR_MANAGER)
+        self.client_hr = client_for(self.hr)
+        self.employee = make_employee(
+            self.structure, city="Douala", region="LITTORAL", title="MR"
+        )
+
+    def test_record_pdf_and_new_fields(self):
+        data = self.client_hr.get(f"/api/employees/{self.employee.pk}/").json()
+        self.assertEqual(data["region_label"], "Littoral")
+        self.assertEqual(data["number_of_children"], 0)
+        self.assertIsNotNone(data["age"])
+        pdf = self.client_hr.get(f"/api/employees/{self.employee.pk}/record/")
+        self.assertEqual(pdf.status_code, 200)
+        self.assertTrue(pdf.content.startswith(b"%PDF"))
+
+    def test_generic_table_export(self):
+        payload = {
+            "title": "Leave requests",
+            "headers": ["Employee", "Days"],
+            "rows": [["John Doe", 5], ["Jane Roe", 2.5]],
+        }
+        for fmt, magic in (("pdf", b"%PDF"), ("xlsx", b"PK")):
+            response = self.client_hr.post(
+                "/api/exports/table/", {**payload, "file_format": fmt}, format="json"
+            )
+            self.assertEqual(response.status_code, 200, fmt)
+            self.assertTrue(response.content.startswith(magic), fmt)
+        bad = self.client_hr.post(
+            "/api/exports/table/", {**payload, "rows": "x"}, format="json"
+        )
+        self.assertEqual(bad.status_code, 400)

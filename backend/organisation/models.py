@@ -14,8 +14,16 @@ class CompanyIdentity(models.Model):
     tax_id = models.CharField(max_length=100, blank=True, null=True)
     social_insurance_number = models.CharField(max_length=100, blank=True, null=True)
     address = models.TextField()
+    city = models.CharField(max_length=100, blank=True)
+    postal_box = models.CharField("P.O. Box", max_length=50, blank=True)
+    phone = models.CharField(max_length=50, blank=True)
+    email = models.EmailField(blank=True)
+    website = models.CharField(max_length=150, blank=True)
     logo = models.ImageField(upload_to="company_logos/", blank=True, null=True)
     legal_representative = models.CharField(max_length=255)
+    legal_representative_title = models.CharField(
+        max_length=100, blank=True, help_text="For example: General Manager."
+    )
 
     def __str__(self):
         return self.corporate_name

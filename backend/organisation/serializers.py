@@ -14,6 +14,8 @@ class CompanyIdentitySerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyIdentity
         fields = "__all__"
+        # The logo is sent on its own (multipart) to the "logo" action.
+        read_only_fields = ["logo"]
 
 
 class SiteSerializer(serializers.ModelSerializer):

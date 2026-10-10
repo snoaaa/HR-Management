@@ -14,7 +14,11 @@ class LeaveType(models.Model):
     """BN-46 / BN-47: configurable catalogue of leave and absence types."""
 
     COUNTING = (
-        ("WORKING_DAYS", "Working days (rest days and holidays excluded)"),
+        (
+            "OUVRABLE_DAYS",
+            "Jours ouvrables (Labour Code art. 89: Sunday and public holidays excluded)",
+        ),
+        ("WORKING_DAYS", "Working days (site rest days and holidays excluded)"),
         ("CALENDAR_DAYS", "Calendar days"),
     )
 
@@ -63,6 +67,16 @@ class EntitlementRule(models.Model):
         default=list,
         help_text='Extra days per year by seniority, e.g. [{"years": 5, "extra_days": 2}].',
     )
+    # Labour Code art. 89: workers under 18 acquire 2.5 days per month.
+    minor_days_per_month = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("2.5")
+    )
+    minor_age_limit = models.PositiveSmallIntegerField(default=18)
+    # Labour Code art. 90: extra days for mothers per young child.
+    mother_extra_days_per_child = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("2")
+    )
+    mother_child_age_limit = models.PositiveSmallIntegerField(default=6)
     max_carry_over_days = models.DecimalField(
         max_digits=6,
         decimal_places=2,

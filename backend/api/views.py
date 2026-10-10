@@ -181,6 +181,7 @@ class ChangePasswordView(APIView):
 
 
 from django.contrib.auth import get_user_model
+from rest_framework.decorators import action
 from rest_framework.permissions import BasePermission
 from rest_framework.viewsets import ModelViewSet
 
@@ -206,6 +207,7 @@ class UserViewSet(ModelViewSet):
     ViewSet for listing, retrieving, creating, and updating users (BN-171, BN-177).
     """
 
+    search_fields = ("username", "first_name", "last_name", "email")
     serializer_class = UserSerializer
     permission_classes = [IsSystemAdminOrHRManager]
     queryset = User.objects.all().order_by("-date_joined")
@@ -245,6 +247,21 @@ class UserViewSet(ModelViewSet):
                 "new_value": new_data,
             },
         )
+
+    @action(detail=True, methods=["post"])
+    def reset_two_factor(self, request, pk=None):
+        """BN-176: lost phone – the administrator resets the second factor."""
+        user = self.get_object()
+        user.totp_enabled = False
+        user.totp_secret = ""
+        user.save(update_fields=["totp_enabled", "totp_secret"])
+        log_audit_action(
+            request.user,
+            f"Reset the second factor of {user.username}",
+            "User Management",
+            request,
+        )
+        return Response({"detail": "Second factor reset."})
 
     def perform_destroy(self, instance):
         # We generally don't delete users, we deactivate them (is_active=False).
@@ -290,6 +307,7 @@ from rest_framework.decorators import action
 from core.exports import export_rows
 from users.models import RolePermission
 from users.permissions import (
+    is_admin,
     ACTIONS,
     MODULES,
     can_view_salary,
@@ -351,7 +369,7 @@ class MyPermissionsView(APIView):
         from employees.models import Employee
 
         user = request.user
-        if user.is_superuser:
+        if is_admin(user):
             perms = {module: list(ACTIONS) for module in MODULES}
         else:
             perms = {
@@ -430,3 +448,106 @@ class PermissionMatrixView(APIView):
             },
         )
         return self.get(request)
+
+
+from django.core import signing
+
+from users import totp
+
+
+def _token_payload(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        "access": str(refresh.access_token),
+        "refresh": str(refresh),
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "role": user.role,
+            "requires_password_change": user.requires_password_change,
+            "requires_two_factor_setup": user.requires_two_factor_setup,
+            "totp_enabled": user.totp_enabled,
+        },
+    }
+
+
+class TwoFactorVerifyView(APIView):
+    """BN-176: second step of the login (code of the authenticator app)."""
+
+    permission_classes = ()
+    authentication_classes = ()
+
+    def post(self, request):
+        try:
+            data = signing.loads(
+                request.data.get("challenge", ""), salt="hrms-2fa", max_age=300
+            )
+        except signing.BadSignature:
+            return Response(
+                {"detail": "The login has expired, sign in again."}, status=400
+            )
+        user = User.objects.filter(pk=data.get("uid"), is_active=True).first()
+        if user is None or not totp.verify(user.totp_secret, request.data.get("code")):
+            log_audit_action(user, "Failed second factor", "Authentication", request)
+            return Response({"detail": "Invalid code."}, status=400)
+        log_audit_action(
+            user, "User logged in successfully (two factors)", "Authentication", request
+        )
+        return Response(_token_payload(user))
+
+
+class TwoFactorSetupView(APIView):
+    """BN-176: activate (POST code) or reset the second factor of the logged-in user."""
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        if not user.totp_secret or not user.totp_enabled:
+            user.totp_secret = totp.new_secret()
+            user.save(update_fields=["totp_secret"])
+        return Response(
+            {
+                "enabled": user.totp_enabled,
+                "secret": "" if user.totp_enabled else user.totp_secret,
+                "uri": (
+                    ""
+                    if user.totp_enabled
+                    else totp.provisioning_uri(user.totp_secret, user.username)
+                ),
+            }
+        )
+
+    def post(self, request):
+        user = request.user
+        if not totp.verify(user.totp_secret, request.data.get("code")):
+            return Response(
+                {"detail": "Invalid code: check the time of your phone."}, status=400
+            )
+        user.totp_enabled = True
+        user.save(update_fields=["totp_enabled"])
+        log_audit_action(
+            user,
+            "Activated the second authentication factor",
+            "Authentication",
+            request,
+        )
+        return Response({"enabled": True})
+
+    def delete(self, request):
+        user = request.user
+        if not totp.verify(user.totp_secret, request.data.get("code")):
+            return Response({"detail": "Invalid code."}, status=400)
+        user.totp_enabled = False
+        user.totp_secret = ""
+        user.save(update_fields=["totp_enabled", "totp_secret"])
+        log_audit_action(
+            user,
+            "Deactivated the second authentication factor",
+            "Authentication",
+            request,
+        )
+        return Response({"enabled": False})
