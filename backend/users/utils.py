@@ -22,6 +22,10 @@ def log_audit_action(user, action, module, request=None, details=None):
     Create an AuditLog entry.
     """
     ip_address = get_client_ip(request) if request else None
+    details = dict(details or {})
+    if request is not None:
+        # BN-173: record the machine the operation came from.
+        details.setdefault("user_agent", request.META.get("HTTP_USER_AGENT", ""))
 
     try:
         AuditLog.objects.create(
@@ -29,7 +33,7 @@ def log_audit_action(user, action, module, request=None, details=None):
             action=action,
             module=module,
             ip_address=ip_address,
-            details=details or {},
+            details=details,
         )
     except Exception as e:
         # We don't want audit logging failures to break the application flow,

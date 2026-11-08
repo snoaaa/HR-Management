@@ -20,6 +20,7 @@ env/
 staticfiles/
 media/
 db.sqlite3
+backend/schema.yml
 
 # ---------------------------------------------------------------------------
 # Node / Frontend

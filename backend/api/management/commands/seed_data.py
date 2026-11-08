@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from organisation.models import CompanyIdentity, Site, Department, Position
@@ -10,6 +11,13 @@ User = get_user_model()
 
 class Command(BaseCommand):
     help = "Seed the database with initial data for testing and development"
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--base-only",
+            action="store_true",
+            help="Only the base accounts, without the demonstration data.",
+        )
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Starting database seeding...")
@@ -146,4 +154,77 @@ class Command(BaseCommand):
             },
         )
 
+        self.seed_sprint_data(created_users, dept, pos, site)
+        if not kwargs.get("base_only"):
+            # Demonstration data for every module (Cameroonian context).
+            call_command("seed_demo", stdout=self.stdout)
         self.stdout.write(self.style.SUCCESS("Successfully seeded database!"))
+
+    def seed_sprint_data(self, created_users, dept, pos, site):
+        """
+        Data needed by the modules of sprints 3 to 9: payroll and accounting
+        users, a classification, and an active contract with bank details for
+        every employee who has none yet.
+        """
+        from decimal import Decimal
+
+        from contracts.models import Contract
+        from contracts.services import activate
+        from organisation.models import Classification
+
+        self.stdout.write("Creating payroll users, classification and contracts...")
+        for username, role, first, last in (
+            ("payroll", "PAYROLL_OFFICER", "Payroll", "Officer"),
+            ("accountant", "ACCOUNTANT", "Chief", "Accountant"),
+        ):
+            user, created = User.objects.get_or_create(username=username)
+            if created:
+                user.email = f"{username}@example.com"
+                user.set_password("password123")
+                user.role = role
+                user.first_name, user.last_name = first, last
+                user.save()
+
+        classification, _ = Classification.objects.get_or_create(
+            category="Employee", grade="B", echelon="1", defaults={"coefficient": 200}
+        )
+        if pos.classification_id is None:
+            pos.classification = classification
+            pos.save(update_fields=["classification"])
+
+        admin_user = created_users.get("admin")
+        for index, employee in enumerate(
+            Employee.objects.exclude(status="ARCHIVED").order_by("id"), start=1
+        ):
+            changed = []
+            for field, value in (
+                ("bank_name", "Afriland First Bank"),
+                ("account_number", f"10005-0000{index:04d}"),
+                ("method_of_payment", "TRANSFER"),
+                ("social_insurance_number", f"CNPS-{index:06d}"),
+                ("tax_identification_number", f"NIU-{index:09d}"),
+            ):
+                if not getattr(employee, field):
+                    setattr(employee, field, value)
+                    changed.append(field)
+            if employee.classification_id is None:
+                employee.classification = classification
+                changed.append("classification")
+            if changed:
+                employee.save(update_fields=changed)
+            if employee.contracts.exists():
+                continue
+            is_manager = employee.user and employee.user.role == "HR_MANAGER"
+            contract = Contract.objects.create(
+                employee=employee,
+                contract_type="PERMANENT",
+                start_date=employee.date_of_hire,
+                base_salary=Decimal("650000" if is_manager else "350000"),
+                weekly_hours=Decimal("40"),
+                workplace=employee.workplace or site,
+                department=employee.department or dept,
+                position=employee.position or pos,
+                classification=employee.classification,
+                created_by=admin_user,
+            )
+            activate(contract, admin_user)

@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    CorrectionRequestViewSet,
     EducationAndExperienceViewSet,
     EmployeeDocumentViewSet,
     EmployeeHistoryViewSet,
@@ -10,6 +11,7 @@ from .views import (
 )
 
 router = DefaultRouter()
+router.register(r"corrections", CorrectionRequestViewSet, basename="correction-request")
 router.register(r"", EmployeeViewSet, basename="employee")
 
 # For nested routes without drf-nested-routers
