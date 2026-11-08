@@ -39,7 +39,15 @@ import Approvals from "./pages/Notifications/Approvals";
 import Notifications from "./pages/Notifications/Notifications";
 import PermissionMatrix from "./pages/Admin/PermissionMatrix";
 import AdminSettings from "./pages/Admin/AdminSettings";
-import ComingSoon from "./pages/OtherPage/ComingSoon";
+import Planning from "./pages/Planning/Planning";
+import PayrollCycle from "./pages/Payroll/PayrollCycle";
+import PayslipsList from "./pages/Payroll/PayslipsList";
+import PayrollSimulation from "./pages/Payroll/PayrollSimulation";
+import PayrollSettings from "./pages/Payroll/PayrollSettings";
+import Documents from "./pages/Documents/Documents";
+import MyTime from "./pages/MySpace/MyTime";
+import MyPayslips from "./pages/MySpace/MyPayslips";
+import MyDocuments from "./pages/MySpace/MyDocuments";
 
 export default function App() {
   return (
@@ -75,13 +83,16 @@ export default function App() {
               <Route path="/admin/permissions" element={<PermissionMatrix />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
 
-              {/* Next iteration: the backend of these screens is ready */}
-              <Route path="/planning" element={<ComingSoon />} />
-              <Route path="/payroll/*" element={<ComingSoon />} />
-              <Route path="/documents" element={<ComingSoon />} />
-              <Route path="/my/time" element={<ComingSoon />} />
-              <Route path="/my/payslips" element={<ComingSoon />} />
-              <Route path="/my/documents" element={<ComingSoon />} />
+              {/* Time, Planning, Payroll & Documents */}
+              <Route path="/planning" element={<Planning />} />
+              <Route path="/payroll" element={<PayrollCycle />} />
+              <Route path="/payroll/payslips" element={<PayslipsList />} />
+              <Route path="/payroll/simulation" element={<PayrollSimulation />} />
+              <Route path="/payroll/settings" element={<PayrollSettings />} />
+              <Route path="/documents" element={<Documents />} />
+              <Route path="/my/time" element={<MyTime />} />
+              <Route path="/my/payslips" element={<MyPayslips />} />
+              <Route path="/my/documents" element={<MyDocuments />} />
 
               {/* Others Page */}
               <Route path="/profile" element={<UserProfiles />} />
