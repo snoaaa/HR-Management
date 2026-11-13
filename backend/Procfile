@@ -1,2 +1,2 @@
-web: gunicorn hrms_backend.wsgi:application
+web: gunicorn hrms_backend.wsgi:application --workers 2 --threads 4 --timeout 120
 

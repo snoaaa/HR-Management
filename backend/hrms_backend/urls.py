@@ -1,9 +1,10 @@
 """hrms_backend URL Configuration"""
 
+import os
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponseRedirect
 from django.urls import include, path, re_path
 from django.views.static import serve
 
@@ -50,8 +51,22 @@ def frontend(request, *args, **kwargs):
     return response
 
 
+def spa_redirect(request, path=""):
+    """Redirect web visitors to the deployed frontend app."""
+    frontend_url = os.environ.get(
+        "FRONTEND_URL", "https://hrms-frontend-0yx3.onrender.com"
+    ).rstrip("/")
+    target = f"{frontend_url}/{path}" if path else frontend_url
+    return HttpResponseRedirect(target)
+
+
 if settings.SERVE_FRONTEND:
-    # Everything that is not the API, the admin or a file goes to the SPA.
+    # Everything that is not the API, the admin or a file goes to the local SPA build.
     urlpatterns += [
-        re_path(r"^(?!api/|admin/|media/|static/|assets/).*$", frontend),
+        re_path(r"^(?!api(?:/|$)|admin(?:/|$)|media(?:/|$)|static(?:/|$)|assets(?:/|$)).*$", frontend),
+    ]
+else:
+    # Standalone backend on Render: redirect root and web routes to the frontend app.
+    urlpatterns += [
+        re_path(r"^(?!api(?:/|$)|admin(?:/|$)|media(?:/|$)|static(?:/|$)|assets(?:/|$))(?P<path>.*)$", spa_redirect),
     ]
