@@ -3,7 +3,7 @@ PDF production for every printable document of the system (M-12).
 
 Documents are HTML rendered with the Django template engine, then converted
 with xhtml2pdf. Every document shares the same professional layout in the
-colours of the application (Odoo purple #714B67 and teal #00A09D, flat
+colours of the logo (navy #101926 and orange #FA5A05, flat
 colours only): the organisation header with its logo and legal
 identification (BN-01), a coloured title, styled tables and a footer with
 the page numbers.
@@ -16,13 +16,13 @@ from django.template import Context, Template
 from django.utils import timezone
 from django.utils.html import escape
 
-PURPLE = "#714B67"
-PURPLE_DARK = "#4a2f42"
-PURPLE_LIGHT = "#f5f0f3"
-TEAL = "#00A09D"
-TEXT = "#2d1f29"
-MUTED = "#6b5565"
-BORDER = "#e8dde5"
+NAVY = "#101926"
+NAVY_SOFT = "#364152"
+ORANGE = "#FA5A05"
+ORANGE_LIGHT = "#fff2e8"
+TEXT = "#101926"
+MUTED = "#4b5565"
+BORDER = "#e3e7ed"
 
 _FOOTER_FRAME = (
     "@frame footer { -pdf-frame-content: page-footer; bottom: 0.7cm; "
@@ -33,35 +33,35 @@ BASE_CSS = f"""
 @page {{ size: a4 portrait; margin: 1.4cm 1.6cm 2.0cm 1.6cm; {_FOOTER_FRAME} }}
 @page landscape {{ size: a4 landscape; margin: 1.2cm 1.4cm 1.8cm 1.4cm; {_FOOTER_FRAME} }}
 body {{ font-family: Helvetica; font-size: 8.8pt; color: {TEXT}; line-height: 1.35; }}
-h1 {{ font-size: 15pt; margin: 4pt 0 2pt 0; color: {PURPLE}; text-transform: uppercase;
-     border-left: 4pt solid {TEAL}; padding: 2pt 0 2pt 7pt; }}
-h2 {{ font-size: 10.5pt; margin: 10pt 0 4pt 0; color: {PURPLE_DARK}; padding-bottom: 2pt;
+h1 {{ font-size: 15pt; margin: 4pt 0 2pt 0; color: {NAVY}; text-transform: uppercase;
+     border-left: 4pt solid {ORANGE}; padding: 2pt 0 2pt 7pt; }}
+h2 {{ font-size: 10.5pt; margin: 10pt 0 4pt 0; color: {NAVY_SOFT}; padding-bottom: 2pt;
      border-bottom: 0.8pt solid {BORDER}; }}
 p {{ margin: 3pt 0; }}
 table {{ width: 100%; }}
-th {{ background-color: {PURPLE}; color: #ffffff; font-weight: bold; font-size: 8pt; text-align: left;
-     padding: 4pt 4pt 3pt 4pt; border: 0.5pt solid {PURPLE}; }}
+th {{ background-color: {NAVY}; color: #ffffff; font-weight: bold; font-size: 8pt; text-align: left;
+     padding: 4pt 4pt 3pt 4pt; border: 0.5pt solid {NAVY}; }}
 td {{ padding: 3pt 4pt 2pt 4pt; border-bottom: 0.5pt solid {BORDER}; vertical-align: top; }}
-tr.alt td {{ background-color: #faf8f9; }}
+tr.alt td {{ background-color: #f9fafb; }}
 td.num, th.num {{ text-align: right; }}
 .no-border td, .no-border th {{ border: none; background-color: transparent; color: {TEXT}; padding: 1pt 4pt; }}
 .no-border th {{ font-weight: bold; }}
 .muted {{ color: {MUTED}; }}
 .small {{ font-size: 7.5pt; }}
 .header td {{ border: none; padding: 0; vertical-align: middle; }}
-.company-name {{ font-size: 13pt; font-weight: bold; color: {PURPLE}; }}
+.company-name {{ font-size: 13pt; font-weight: bold; color: {NAVY}; }}
 .company-legal {{ font-size: 7.5pt; color: {MUTED}; }}
-.rule {{ border-bottom: 2pt solid {PURPLE}; margin: 6pt 0 1pt 0; }}
-.rule-teal {{ border-bottom: 0.8pt solid {TEAL}; margin: 0 0 8pt 0; }}
+.rule {{ border-bottom: 2pt solid {NAVY}; margin: 6pt 0 1pt 0; }}
+.rule-teal {{ border-bottom: 0.8pt solid {ORANGE}; margin: 0 0 8pt 0; }}
 .doc-meta {{ font-size: 7.5pt; color: {MUTED}; margin: 0 0 8pt 0; }}
-.total td {{ font-weight: bold; background-color: {PURPLE_LIGHT}; border-top: 1pt solid {PURPLE}; }}
-.highlight {{ background-color: {PURPLE_LIGHT}; padding: 6pt; border-left: 3pt solid {TEAL}; }}
-.badge {{ color: #ffffff; background-color: {TEAL}; padding: 1pt 4pt; font-size: 7.5pt; }}
+.total td {{ font-weight: bold; background-color: {ORANGE_LIGHT}; border-top: 1pt solid {NAVY}; }}
+.highlight {{ background-color: {ORANGE_LIGHT}; padding: 6pt; border-left: 3pt solid {ORANGE}; }}
+.badge {{ color: #ffffff; background-color: {ORANGE}; padding: 1pt 4pt; font-size: 7.5pt; }}
 .duplicate {{ color: #b00020; font-size: 13pt; font-weight: bold; text-align: center;
              border: 1pt solid #b00020; padding: 3pt; }}
 .signature td {{ border: none; height: 60pt; vertical-align: top; }}
 /* Styling the footer frame itself hides the page numbers: style its table. */
-table.footer td {{ font-size: 7pt; color: {MUTED}; border: none; border-top: 0.8pt solid {PURPLE};
+table.footer td {{ font-size: 7pt; color: {MUTED}; border: none; border-top: 0.8pt solid {NAVY};
                   padding: 3pt 0 0 0; background-color: transparent; }}
 """
 

@@ -25,7 +25,8 @@ export interface EducationAndExperience {
 
 export interface EmployeeHistory {
   id: number;
-  author: number;
+  author: number | null;
+  author_name?: string | null;
   modification_date: string;
   field_name: string;
   previous_value: string | null;
@@ -49,10 +50,27 @@ export interface Employee {
   identity_document_type: string;
   identity_document_number: string;
   identity_document_validity?: string | null;
+  identity_document_issue_date?: string | null;
+  identity_document_issue_place?: string;
+  title?: '' | 'MR' | 'MRS' | 'MS' | 'DR' | 'PR';
+  maiden_name?: string;
+  blood_group?: string;
+  has_disability?: boolean;
+  education_level?: string;
+  spoken_languages?: string;
+  age?: number | null;
+  number_of_children?: number;
+  region_label?: string;
+  title_label?: string;
+  education_level_label?: string;
   photograph?: File | string | null;
 
   // Contact Details
   address: string;
+  city?: string;
+  region?: string;
+  postal_box?: string;
+  professional_phone?: string;
   phone_number: string;
   phone_number_2?: string | null;
   phone_number_3?: string | null;
@@ -71,6 +89,7 @@ export interface Employee {
   // Social & Tax
   social_insurance_number?: string | null;
   tax_identification_number?: string | null;
+  cnps_registration_date?: string | null;
   professional_identification?: string | null;
 
   // Bank Details

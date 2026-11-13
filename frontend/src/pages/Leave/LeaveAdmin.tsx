@@ -49,8 +49,8 @@ function Balances() {
   const { rows, loading } = useApiList<any>("leave/requests/balances/", { year });
   const { can } = usePermissions();
   return (
-    <Card padded={false} title={`Balances ${year} (BN-49)`} actions={can("leave", "export") && <ExportButtons url="leave/requests/balances/" params={{ year }} />}>
-      <DataTable
+    <Card padded={false} title={`Balances ${year}`} actions={can("leave", "export") && <ExportButtons url="leave/requests/balances/" params={{ year }} />}>
+      <DataTable exportTitle="Leave balances"
         rows={rows}
         loading={loading}
         rowKey={(r: any) => r.employee}
@@ -74,7 +74,7 @@ function Configuration() {
     <div className="space-y-8">
       <CrudSection
         endpoint="leave/types/"
-        title="Leave and absence types (BN-46, BN-47)"
+        title="Leave and absence types"
         modalSize="lg"
         columns={[
           {
@@ -105,7 +105,7 @@ function Configuration() {
           { name: "pays_leave_allowance", label: "Pays the leave allowance", type: "checkbox" },
           {
             name: "counting_rule",
-            label: "Counting rule (BN-52)",
+            label: "Counting rule",
             type: "select",
             options: [
               { value: "WORKING_DAYS", label: "Working days" },
@@ -120,7 +120,7 @@ function Configuration() {
       />
       <CrudSection
         endpoint="leave/rules/"
-        title="Entitlement rules (BN-48, BN-56)"
+        title="Entitlement rules"
         description="Dated rules: a change applies from its effective date only."
         modalSize="lg"
         columns={[
@@ -144,7 +144,7 @@ function Configuration() {
       />
       <CrudSection
         endpoint="leave/adjustments/"
-        title="Adjustments & opening balances (BN-48, BN-179)"
+        title="Adjustments & opening balances"
         canEdit={false}
         columns={[
           { key: "employee_name", header: "Employee" },
@@ -181,7 +181,7 @@ export default function LeaveAdmin() {
   const { can } = usePermissions();
   return (
     <>
-      <PageHeader eyebrow="Time & absence" title="Leave & absence" subtitle="Requests, approvals, balances and the annual plan (M-06)." />
+      <PageHeader eyebrow="Time & absence" title="Leave & absence" subtitle="Requests, approvals, balances and the annual plan." />
       <Tabs
         active={tab}
         onChange={setTab}

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_URL } from './baseUrl';
 
 const getBaseApiUrl = (): string => {
   let url = (import.meta.env.VITE_API_URL as string) || 'http://localhost:8000/api/';
@@ -15,7 +16,7 @@ const getBaseApiUrl = (): string => {
 const API_BASE_URL = getBaseApiUrl();
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -45,8 +46,7 @@ api.interceptors.response.use(
       if (refreshToken) {
         try {
           // Attempt to refresh the token
-          const refreshUrl = `${API_BASE_URL.replace(/\/+$/, '')}/auth/refresh/`;
-          const res = await axios.post(refreshUrl, {
+          const res = await axios.post(`${API_URL}auth/refresh/`, {
             refresh: refreshToken
           });
           

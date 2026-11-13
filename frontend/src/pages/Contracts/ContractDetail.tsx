@@ -77,13 +77,13 @@ export default function ContractDetail() {
         }
       />
 
-      {c.salary_hidden && <div className="mb-4"><Banner tone="info">Your profile does not give access to the salary of this employee (BN-172).</Banner></div>}
+      {c.salary_hidden && <div className="mb-4"><Banner tone="info">Your profile does not give access to the salary of this employee.</Banner></div>}
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
         <Card title="Terms of the contract" className="xl:col-span-2">
           <DefinitionList
             items={[
-              ["Employee", <Link className="text-brand-600 hover:underline dark:text-brand-300" to={`/employees/${c.employee}`}>{c.employee_name} ({c.employee_matriculation})</Link>],
+              ["Employee", <Link className="text-brand-600 hover:underline dark:text-brand-400" to={`/employees/${c.employee}`}>{c.employee_name} ({c.employee_matriculation})</Link>],
               ["Type", c.contract_type_label],
               ["Start", fmt.date(c.start_date)],
               ["End", c.effective_end_date ? fmt.date(c.effective_end_date) : "Indefinite"],
@@ -157,7 +157,7 @@ export default function ContractDetail() {
           {(settlement || c.termination.final_settlement?.items) && (
             <div className="mt-4">
               <p className="section-label mb-2">Final settlement</p>
-              <DataTable
+              <DataTable exportTitle="Final settlement"
                 rows={(settlement || c.termination.final_settlement).items}
                 rowKey={(r: any) => r.code}
                 columns={[
@@ -175,7 +175,7 @@ export default function ContractDetail() {
       )}
 
       <Card title="Amendments (versions)" className="mt-5" padded={false}>
-        <DataTable
+        <DataTable exportTitle="Contract amendments"
           rows={c.amendments || []}
           empty="No amendment."
           columns={[
@@ -209,7 +209,7 @@ export default function ContractDetail() {
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card title="Renewals" padded={false}>
-          <DataTable
+          <DataTable exportTitle="Contract renewals"
             rows={c.renewals || []}
             empty="No renewal."
             columns={[
@@ -220,7 +220,7 @@ export default function ContractDetail() {
           />
         </Card>
         <Card title="Suspensions" padded={false}>
-          <DataTable
+          <DataTable exportTitle="Contract suspensions"
             rows={c.suspensions || []}
             empty="No suspension."
             columns={[
@@ -236,7 +236,7 @@ export default function ContractDetail() {
       <FormModal open={dialog === "edit"} title="Edit the draft" fields={contractFields(true)} initial={c} endpoint="contracts/" id={c.id} size="lg" onClose={() => setDialog(null)} onSaved={reload} />
       <FormModal
         open={dialog === "amend"}
-        title="New amendment (BN-30)"
+        title="New amendment"
         fields={amendmentFields}
         size="lg"
         intro={<Banner tone="info">Only the values you fill in are changed. A back-dated raise is paid as back pay by the payroll.</Banner>}
@@ -247,7 +247,7 @@ export default function ContractDetail() {
       />
       <FormModal
         open={dialog === "renew"}
-        title="Renew the contract (BN-32)"
+        title="Renew the contract"
         fields={[{ name: "new_end_date", label: "New end date", type: "date", required: true }]}
         size="sm"
         onClose={() => setDialog(null)}
@@ -255,7 +255,7 @@ export default function ContractDetail() {
         onSubmit={post("renew")}
         submitLabel="Renew"
       />
-      <FormModal open={dialog === "suspend"} title="Suspend the contract (BN-33)" fields={suspensionFields} onClose={() => setDialog(null)} onSaved={reload} onSubmit={(p) => post("suspend")(compact(p))} submitLabel="Suspend" />
+      <FormModal open={dialog === "suspend"} title="Suspend the contract" fields={suspensionFields} onClose={() => setDialog(null)} onSaved={reload} onSubmit={(p) => post("suspend")(compact(p))} submitLabel="Suspend" />
       <FormModal
         open={dialog === "resume"}
         title="End of the suspension"
@@ -267,7 +267,7 @@ export default function ContractDetail() {
       />
       <FormModal
         open={dialog === "terminate"}
-        title="Terminate the contract (BN-34)"
+        title="Terminate the contract"
         fields={terminationFields}
         initial={{ notice_worked: true }}
         onClose={() => setDialog(null)}

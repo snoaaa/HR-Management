@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import api from "@/api/axiosConfig";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import Select from "@/components/form/Select";
 import type { Department } from "./DepartmentsTable";
-import type { Site } from "./SitesTable";
-import type { CostCentre } from "./CostCentresTable";
 import { useToast } from "@/context/ToastContext";
+import SearchSelect from "@/components/kit/SearchSelect";
 
 interface DepartmentModalProps {
   department: Department | null;
@@ -26,21 +25,10 @@ export default function DepartmentModal({ department, onClose, onSuccess }: Depa
     manager: department?.manager || "",
   });
 
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [sites, setSites] = useState<Site[]>([]);
-  const [costCentres, setCostCentres] = useState<CostCentre[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  useEffect(() => {
-    // Fetch dependencies
-    api.get("organisation/departments/").then((res) => setDepartments(res.data));
-    api.get("organisation/sites/").then((res) => setSites(res.data));
-    api.get("organisation/cost-centres/").then((res) => setCostCentres(res.data));
-    api.get("users/management/").then((res) => setUsers(res.data));
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     let value = e.target.value;
@@ -140,72 +128,46 @@ export default function DepartmentModal({ department, onClose, onSuccess }: Depa
 
             <div>
               <Label>Parent Unit</Label>
-              <select
-                name="parent"
-                value={formData.parent}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              >
-                <option value="">-- None (Top Level) --</option>
-                {departments
-                  .filter((d) => d.id !== department?.id) // Prevent self-referencing
-                  .map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} ({d.code})
-                    </option>
-                  ))}
-              </select>
+              <SearchSelect
+                url="organisation/departments/"
+                value={formData.parent || null}
+                label={(d) => `${d.name} (${d.code})`}
+                placeholder="None (top level) – search a unit…"
+                onChange={(v) => setFormData((prev) => ({ ...prev, parent: v ?? "" }))}
+              />
             </div>
 
             <div>
               <Label>Site / Location</Label>
-              <select
-                name="site"
-                value={formData.site}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              >
-                <option value="">-- Select Site --</option>
-                {sites.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+              <SearchSelect
+                url="organisation/sites/"
+                value={formData.site || null}
+                label={(s) => `${s.name} (${s.code})`}
+                placeholder="Search a site…"
+                onChange={(v) => setFormData((prev) => ({ ...prev, site: v ?? "" }))}
+              />
             </div>
 
             <div>
               <Label>Cost Centre</Label>
-              <select
-                name="cost_centre"
-                value={formData.cost_centre}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              >
-                <option value="">-- Select Cost Centre --</option>
-                {costCentres.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.code})
-                  </option>
-                ))}
-              </select>
+              <SearchSelect
+                url="organisation/cost-centres/"
+                value={formData.cost_centre || null}
+                label={(c) => `${c.name} (${c.code})`}
+                placeholder="Search a cost centre…"
+                onChange={(v) => setFormData((prev) => ({ ...prev, cost_centre: v ?? "" }))}
+              />
             </div>
 
             <div className="sm:col-span-2">
               <Label>Manager / Unit Head</Label>
-              <select
-                name="manager"
-                value={formData.manager}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              >
-                <option value="">-- Select Manager --</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.first_name} {u.last_name} ({u.username})
-                  </option>
-                ))}
-              </select>
+              <SearchSelect
+                url="users/management/"
+                value={formData.manager || null}
+                label={(u) => `${u.first_name} ${u.last_name} (${u.username})`}
+                placeholder="Search a manager…"
+                onChange={(v) => setFormData((prev) => ({ ...prev, manager: v ?? "" }))}
+              />
             </div>
           </div>
 

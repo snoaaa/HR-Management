@@ -5,6 +5,7 @@ import PageMeta from "@/components/common/PageMeta";
 import ComponentCard from "@/components/common/ComponentCard";
 import Button from "@/components/ui/button/Button";
 import Badge from "@/components/ui/badge/Badge";
+import { DownloadButton } from "@/components/kit/CrudSection";
 import { useEmployees } from "@/hooks/useEmployees";
 import type { Employee, EmployeeHistory } from "@/types/employee";
 import { UserIcon, EditIcon, CheckCircleIcon, TimeIcon, DocsIcon, GroupIcon, DollarIcon } from "@/icons";
@@ -50,10 +51,10 @@ export default function EmployeeProfile() {
       
       {/* Profile Header */}
       <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 p-8 mb-6 overflow-hidden relative">
-        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-brand-500 to-blue-500 z-0"></div>
+        <div className="absolute top-0 left-0 w-full h-32 bg-brand-500 z-0"></div>
         <div className="relative z-10 flex flex-col md:flex-row gap-8 items-end pt-12">
           <div className="w-32 h-32 rounded-2xl bg-white dark:bg-gray-800 p-2 shadow-xl shrink-0">
-            <div className="w-full h-full rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-4xl font-bold text-brand-500">
+            <div className="w-full h-full rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-4xl font-bold text-brand-600">
               {employee.surname.charAt(0)}{employee.given_names.charAt(0)}
             </div>
           </div>
@@ -69,7 +70,8 @@ export default function EmployeeProfile() {
             <p className="text-gray-500 dark:text-gray-400">{employee.contract_type.replace('_', ' ')} • Hired on {new Date(employee.date_of_hire).toLocaleDateString()}</p>
           </div>
           
-          <div className="pb-2">
+          <div className="flex flex-wrap gap-2 pb-2">
+            <DownloadButton url={`employees/${employee.id}/record/`} label="Employee record (PDF)" className="btn-secondary" />
             <Link to={`/employees/edit/${employee.id}`}>
               <Button size="sm" variant="outline" className="flex items-center gap-2">
                 <EditIcon className="w-4 h-4 fill-current" />
@@ -117,6 +119,26 @@ export default function EmployeeProfile() {
                   <p className="font-medium text-gray-900 dark:text-white">{employee.nationality}</p>
                 </div>
                 <div>
+                  <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Title / maiden name</h4>
+                  <p className="font-medium text-gray-900 dark:text-white">{[employee.title_label, employee.maiden_name && `née ${employee.maiden_name}`].filter(Boolean).join(" · ") || "—"}</p>
+                </div>
+                <div>
+                  <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Age / children</h4>
+                  <p className="font-medium text-gray-900 dark:text-white">{employee.age ?? "—"} years · {employee.number_of_children ?? 0} child(ren)</p>
+                </div>
+                <div>
+                  <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Identity document</h4>
+                  <p className="font-medium text-gray-900 dark:text-white">{employee.identity_document_type} n° {employee.identity_document_number}{employee.identity_document_issue_date ? ` · issued on ${new Date(employee.identity_document_issue_date).toLocaleDateString()}` : ""}{employee.identity_document_issue_place ? ` at ${employee.identity_document_issue_place}` : ""}{employee.identity_document_validity ? ` · valid until ${new Date(employee.identity_document_validity).toLocaleDateString()}` : ""}</p>
+                </div>
+                <div>
+                  <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Education / languages</h4>
+                  <p className="font-medium text-gray-900 dark:text-white">{employee.education_level_label || "—"}{employee.spoken_languages ? ` · ${employee.spoken_languages}` : ""}</p>
+                </div>
+                <div>
+                  <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Blood group</h4>
+                  <p className="font-medium text-gray-900 dark:text-white">{employee.blood_group || "—"}{employee.has_disability ? " · recognised disability" : ""}</p>
+                </div>
+                <div>
                   <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Contact</h4>
                   <p className="font-medium text-gray-900 dark:text-white">{employee.phone_number}</p>
                   {employee.phone_number_2 && <p className="font-medium text-gray-900 dark:text-white">{employee.phone_number_2}</p>}
@@ -126,12 +148,14 @@ export default function EmployeeProfile() {
                 <div>
                   <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Address</h4>
                   <p className="font-medium text-gray-900 dark:text-white">{employee.address}</p>
+                  <p className="text-sm text-gray-500">{[employee.city, employee.region_label, employee.postal_box && `P.O. Box ${employee.postal_box}`].filter(Boolean).join(" · ")}</p>
+                  {employee.professional_phone && <p className="text-sm text-gray-500">Office: {employee.professional_phone}</p>}
                 </div>
                 <div className="md:col-span-2 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                   <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-3">Emergency Contacts</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                      <p className="text-xs text-brand-500 font-semibold mb-1">Primary</p>
+                      <p className="text-xs text-brand-600 font-semibold mb-1">Primary</p>
                       <p className="font-medium text-gray-900 dark:text-white">{employee.emergency_contact_name}</p>
                       {employee.emergency_contact_relationship && <p className="text-xs text-gray-500 mb-1">{employee.emergency_contact_relationship}</p>}
                       <p className="text-sm text-gray-600 dark:text-gray-400">{employee.emergency_contact_number}</p>
@@ -174,19 +198,20 @@ export default function EmployeeProfile() {
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Account Number</h4>
-                  <p className="font-mono font-medium text-gray-900 dark:text-white">{employee.account_number || 'N/A'}</p>
+                  <p className="font-mono font-medium text-gray-900 dark:text-white">{employee.account_number || 'N/A'} {employee.bank_key || ''}</p>
+                  {employee.bank_branch && <p className="text-sm text-gray-500">{employee.bank_branch}</p>}
                 </div>
                 <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <h4 className="text-xs text-gray-400 uppercase tracking-wider mb-1">Social Insurance / Tax ID</h4>
-                  <p className="font-mono text-sm text-gray-900 dark:text-white mb-1">NISS: {employee.social_insurance_number || 'N/A'}</p>
-                  <p className="font-mono text-sm text-gray-900 dark:text-white">TIN: {employee.tax_identification_number || 'N/A'}</p>
+                  <p className="font-mono text-sm text-gray-900 dark:text-white mb-1">CNPS: {employee.social_insurance_number || 'N/A'}{employee.cnps_registration_date ? ` (since ${new Date(employee.cnps_registration_date).toLocaleDateString()})` : ''}</p>
+                  <p className="font-mono text-sm text-gray-900 dark:text-white">NIU: {employee.tax_identification_number || 'N/A'}</p>
                 </div>
               </div>
             </ComponentCard>
           )}
 
           {activeTab === "audit" && (
-            <ComponentCard title="Audit Trail" desc="Chronological history of all modifications (BN-21)">
+            <ComponentCard title="Audit Trail" desc="Chronological history of all modifications">
               {history.length === 0 ? (
                 <p className="text-gray-500">No modifications recorded yet.</p>
               ) : (
@@ -195,7 +220,7 @@ export default function EmployeeProfile() {
                     <div key={index} className="relative pl-6">
                       <span className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-brand-500 ring-4 ring-brand-50 dark:ring-gray-900"></span>
                       <div className="text-sm text-gray-500 mb-1">
-                        {new Date(record.modification_date).toLocaleString()} • by User ID {record.author}
+                        {new Date(record.modification_date).toLocaleString()} • by {record.author_name || "system"}
                       </div>
                       <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800 inline-block">
                         <span className="font-medium text-gray-900 dark:text-white">{record.field_name}:</span> 

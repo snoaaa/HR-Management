@@ -1,10 +1,11 @@
 import { useState } from "react";
+import SearchSelect from "@/components/kit/SearchSelect";
 import api from "@/api/axiosConfig";
 import { apiError, firstOfMonthISO, fmt, todayISO } from "@/api/helpers";
 import CrudSection, { ExportButtons } from "@/components/kit/CrudSection";
 import DataTable from "@/components/kit/DataTable";
 import { FormModal, PromptModal } from "@/components/kit/Form";
-import { useApiList, useHashTab, useOptions } from "@/components/kit/hooks";
+import { useApiList, useHashTab } from "@/components/kit/hooks";
 import {
   MONTHS,
   WEEKDAYS,
@@ -42,7 +43,6 @@ interface Day {
 }
 
 function Filters({ value, onChange, extra }: { value: Record<string, string>; onChange: (v: Record<string, string>) => void; extra?: React.ReactNode }) {
-  const departments = useOptions("organisation/departments/", (d) => d.name);
   return (
     <div className="flex flex-wrap items-end gap-2 border-b p-4" style={{ borderColor: "var(--border-color)" }}>
       <label>
@@ -55,14 +55,14 @@ function Filters({ value, onChange, extra }: { value: Record<string, string>; on
       </label>
       <label>
         <span className="field-label">Department</span>
-        <select className="input-field" value={value.department || ""} onChange={(e) => onChange({ ...value, department: e.target.value })}>
-          <option value="">All</option>
-          {departments.map((d) => (
-            <option key={d.value} value={d.value}>
-              {d.label}
-            </option>
-          ))}
-        </select>
+        <SearchSelect
+          className="w-56"
+          url="organisation/departments/"
+          value={value.department || null}
+          label={(d) => d.name}
+          placeholder="All – search a department…"
+          onChange={(v) => onChange({ ...value, department: v ? String(v) : "" })}
+        />
       </label>
       {extra}
     </div>
@@ -155,7 +155,7 @@ function DailyAttendance({ overtimeOnly = false }: { overtimeOnly?: boolean }) {
           </>
         }
       />
-      <DataTable<Day>
+      <DataTable<Day> exportTitle="Daily attendance"
         rows={rows}
         loading={loading}
         selectable={can("attendance", "validate")}
@@ -210,7 +210,7 @@ function DailyAttendance({ overtimeOnly = false }: { overtimeOnly?: boolean }) {
       />
       <PromptModal
         open={!!justify}
-        title="Qualify the absence (BN-41)"
+        title="Qualify the absence"
         message={justify ? `${justify.employee_name} – ${fmt.date(justify.date)}. A justified absence is not deducted from the salary.` : ""}
         commentLabel="Justification"
         commentRequired
@@ -243,7 +243,7 @@ function Clockings() {
   };
   return (
     <div className="space-y-4">
-      <Card title="Import a badge / biometric file (BN-37, BN-180)">
+      <Card title="Import a badge / biometric file">
         <div className="flex flex-wrap items-center gap-3">
           <input type="file" accept=".csv,.txt" className="input-field max-w-sm" onChange={(e) => upload(e.target.files?.[0] || null)} />
           <p className="text-xs text-muted-c">
@@ -256,7 +256,7 @@ function Clockings() {
               {report.imported} line(s) imported, {report.rejected.length} rejected.
             </Banner>
             {report.rejected.length > 0 && (
-              <DataTable
+              <DataTable exportTitle="Rejected clockings"
                 rows={report.rejected}
                 rowKey={(r: any) => `${r.line}-${r.reason}`}
                 columns={[
@@ -277,7 +277,7 @@ function Clockings() {
         endpoint="attendance/clockings/"
         params={{ date: day }}
         title="Entries and exits"
-        description="Manual entry by HR (BN-37). A deleted or regularised clocking stays visible but inactive (BN-44)."
+        description="Manual entry by HR. A deleted or regularised clocking stays visible but inactive."
         canEdit={(c: any) => c.is_active}
         canDelete={(c: any) => c.is_active}
         columns={[
@@ -325,7 +325,7 @@ function Sheet() {
           </>
         }
       />
-      <DataTable
+      <DataTable exportTitle="Attendance sheet"
         rows={rows}
         loading={loading}
         dense
@@ -361,9 +361,9 @@ function Periods() {
         </button>
       </div>
       <Card padded={false}>
-        <DataTable
+        <DataTable exportTitle="Attendance periods"
           rows={rows}
-          empty="No consolidated period. Periods are locked automatically when the payroll is validated (BN-45)."
+          empty="No consolidated period. Periods are locked automatically when the payroll is validated."
           columns={[
             { key: "period", header: "Period", render: (p: any) => `${MONTHS[p.month - 1]} ${p.year}` },
             { key: "status", header: "Status", render: (p: any) => <StatusBadge value={p.status} /> },
@@ -414,7 +414,7 @@ function Configuration() {
         <div className="space-y-6">
           <CrudSection
             endpoint="attendance/calendars/"
-            title="Working calendars (BN-61, BN-08)"
+            title="Working calendars"
             description="Weekly rest days per site; the calendar without site is the default one."
             columns={[
               { key: "name", header: "Name" },
@@ -451,7 +451,7 @@ function Configuration() {
       {section === "assignments" && (
         <CrudSection
           endpoint="attendance/assignments/"
-          title="Schedule assignments (BN-60)"
+          title="Schedule assignments"
           description="Assign a schedule to an employee, a position, a team or a site. The most specific assignment applies; without target it applies to the whole organisation."
           columns={[
             { key: "schedule_name", header: "Schedule" },
@@ -473,7 +473,7 @@ function Configuration() {
       {section === "exceptions" && (
         <CrudSection
           endpoint="attendance/exceptions/"
-          title="Exceptions (BN-60)"
+          title="Exceptions"
           description="Other hours or a day off for one employee on one day."
           columns={[
             { key: "employee_name", header: "Employee" },
@@ -502,7 +502,7 @@ export default function Attendance() {
   const hr = can("attendance", "modify");
   return (
     <>
-      <PageHeader eyebrow="Time & absence" title="Attendance & time tracking" subtitle="Entries and exits, lateness, overtime and absences (M-05)." />
+      <PageHeader eyebrow="Time & absence" title="Attendance & time tracking" subtitle="Entries and exits, lateness, overtime and absences." />
       <Tabs
         active={tab}
         onChange={setTab}
@@ -523,7 +523,7 @@ export default function Attendance() {
       {tab === "regularisations" && (
         <CrudSection
           endpoint="attendance/regularisations/"
-          title="Clocking regularisations (BN-44)"
+          title="Clocking regularisations"
           description="A forgotten or wrong clocking is corrected after approval of the line manager; the original stays visible."
           canEdit={false}
           canDelete={false}
@@ -548,7 +548,7 @@ export default function Attendance() {
       {tab === "missions" && (
         <CrudSection
           endpoint="attendance/missions/"
-          title="Missions and field work (BN-43)"
+          title="Missions and field work"
           canCreate={hr}
           canEdit={hr}
           canDelete={hr}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import SearchSelect from "@/components/kit/SearchSelect";
 import api from "@/api/axiosConfig";
 import { apiError, fmt } from "@/api/helpers";
-import { useOptions } from "@/components/kit/hooks";
 import { employeeField } from "@/components/kit/options";
 import { Banner, Field, Modal } from "@/components/kit/ui";
 import { FieldInput } from "@/components/kit/Form";
@@ -26,7 +26,6 @@ export default function LeaveRequestForm({
   onSaved: () => void;
   forEmployee?: boolean;
 }) {
-  const types = useOptions("leave/types/", (t) => t.name);
   const [values, setValues] = useState<Record<string, any>>({});
   const [preview, setPreview] = useState<Preview | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -122,14 +121,14 @@ export default function LeaveRequestForm({
             </Field>
           )}
           <Field label="Type of leave" required className="sm:col-span-2">
-            <select className="input-field" value={values.leave_type || ""} onChange={(e) => set("leave_type", e.target.value)}>
-              <option value="">— Select —</option>
-              {types.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
+            <SearchSelect
+              url="leave/types/?is_active=true"
+              value={values.leave_type || null}
+              label={(t) => t.name}
+              placeholder="Search a type of leave…"
+              required
+              onChange={(v) => set("leave_type", v)}
+            />
           </Field>
           <Field label="First day" required>
             <input type="date" className="input-field" value={values.start_date || ""} onChange={(e) => set("start_date", e.target.value)} />

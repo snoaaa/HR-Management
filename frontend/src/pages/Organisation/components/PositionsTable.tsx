@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { confirmDialog } from "@/components/kit/confirm";
 import api from "@/api/axiosConfig";
 import {
   Table,
@@ -60,7 +61,7 @@ export default function PositionsTable() {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this position?")) {
+    if (await confirmDialog({ title: "Delete this position?", message: "This cannot be undone.", confirmLabel: "Delete", danger: true })) {
       try {
         await api.delete(`organisation/positions/${id}/`);
         toast.success("Position deleted successfully");
@@ -137,7 +138,7 @@ export default function PositionsTable() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEditModal(p)}
-                          className="text-brand-500 hover:text-brand-600"
+                          className="text-brand-600 hover:text-brand-600"
                         >
                           Edit
                         </button>

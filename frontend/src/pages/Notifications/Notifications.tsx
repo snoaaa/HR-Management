@@ -87,7 +87,7 @@ export default function Notifications() {
                     className="flex w-full items-start gap-3 border-b px-5 py-4 text-start transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
                     style={{ borderColor: "var(--row-divider)" }}
                   >
-                    <span className={`mt-2 h-2 w-2 shrink-0 rounded-full ${n.is_read ? "bg-gray-300 dark:bg-gray-700" : "bg-teal-500"}`} />
+                    <span className={`mt-2 h-2 w-2 shrink-0 rounded-full ${n.is_read ? "bg-gray-300 dark:bg-gray-700" : "bg-brand-500"}`} />
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2">
                         <Badge tone={TONE[n.category]}>{n.category.toLowerCase()}</Badge>

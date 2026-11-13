@@ -38,48 +38,48 @@
   --text-theme-xs: 12px;
   --text-theme-xs--line-height: 18px;
 
-  /* Odoo teal */
-  --color-teal-25: #f2fbfb;
-  --color-teal-50: #e6f7f7;
-  --color-teal-100: #c2ecea;
-  --color-teal-200: #8edcd9;
-  --color-teal-300: #4dc8c4;
-  --color-teal-400: #1fb3af;
-  --color-teal-500: #00a09d;
-  --color-teal-600: #008c89;
-  --color-teal-700: #007d7a;
-  --color-teal-800: #006361;
-  --color-teal-900: #004e4c;
+  /* Accent red: brand moments only */
+  --color-accent-50: #fef2f1;
+  --color-accent-100: #fee2e0;
+  --color-accent-200: #fdc8c5;
+  --color-accent-300: #faa19c;
+  --color-accent-400: #f36660;
+  --color-accent-500: #e01a16;
+  --color-accent-600: #c01511;
+  --color-accent-700: #9e1310;
+  --color-accent-800: #831512;
+  --color-accent-900: #6d1714;
+  --color-ink: #101926;
 
-  /* SAP Fiori accents for data and status */
-  --color-sap-blue: #0a6ed1;
-  --color-sap-blue-light: #e5f0fa;
-  --color-sap-shell: #354a5f;
-  --color-sap-positive: #107e3e;
-  --color-sap-positive-light: #e8f5ec;
-  --color-sap-critical: #e9730c;
-  --color-sap-critical-light: #fef3e8;
-  --color-sap-negative: #bb0000;
-  --color-sap-negative-light: #fbeaea;
-  --color-sap-neutral: #6a6d70;
+  /* Status accents for data */
+  --color-sap-blue: #1d6fd6;
+  --color-sap-blue-light: #e6f0fc;
+  --color-sap-shell: #364152;
+  --color-sap-positive: #12805c;
+  --color-sap-positive-light: #e7f6ef;
+  --color-sap-critical: #c2570a;
+  --color-sap-critical-light: #ffeedd;
+  --color-sap-negative: #b42318;
+  --color-sap-negative-light: #fdecea;
+  --color-sap-neutral: #667085;
 
   --color-current: currentColor;
   --color-transparent: transparent;
   --color-white: #ffffff;
-  --color-black: #101828;
+  --color-black: #101926;
 
-  --color-brand-25: #f5f7ff;
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-300: #a5b4fc;
-  --color-brand-400: #818cf8;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
-  --color-brand-950: #1e1b4b;
+  --color-brand-25: #fffaf5;
+  --color-brand-50: #fff2e8;
+  --color-brand-100: #ffe0c7;
+  --color-brand-200: #ffc494;
+  --color-brand-300: #ffa35c;
+  --color-brand-400: #ff8a1f;
+  --color-brand-500: #fa5a05;
+  --color-brand-600: #d24704;
+  --color-brand-700: #a93804;
+  --color-brand-800: #872e08;
+  --color-brand-900: #6e270b;
+  --color-brand-950: #3c1203;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -95,18 +95,18 @@
   --color-blue-light-950: #062c41;
 
   --color-gray-25: #fcfcfd;
-  --color-gray-50: #f8fafc;
-  --color-gray-100: #f1f5f9;
-  --color-gray-200: #e2e8f0;
-  --color-gray-300: #cbd5e1;
-  --color-gray-400: #94a3b8;
-  --color-gray-500: #64748b;
-  --color-gray-600: #475569;
-  --color-gray-700: #334155;
-  --color-gray-800: #1e293b;
-  --color-gray-900: #0f172a;
-  --color-gray-950: #020617;
-  --color-gray-dark: #0f172a;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f2f4f7;
+  --color-gray-200: #e3e7ed;
+  --color-gray-300: #cdd3dc;
+  --color-gray-400: #8a93a3;
+  --color-gray-500: #667085;
+  --color-gray-600: #4b5565;
+  --color-gray-700: #364152;
+  --color-gray-800: #1d2736;
+  --color-gray-900: #151e2c;
+  --color-gray-950: #0c131e;
+  --color-gray-dark: #151e2c;
 
   --color-orange-25: #fffaf5;
   --color-orange-50: #fff6ed;
@@ -178,7 +178,7 @@
     0px 20px 24px -4px rgba(16, 24, 40, 0.08),
     0px 8px 8px -4px rgba(16, 24, 40, 0.03);
   --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(113, 75, 103, 0.14);
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(250, 90, 5, 0.18);
   --shadow-slider-navigation:
     0px 1px 2px 0px rgba(16, 24, 40, 0.1), 0px 1px 3px 0px rgba(16, 24, 40, 0.1);
   --shadow-tooltip:
@@ -221,7 +221,7 @@
 
   body {
     @apply relative z-1 font-outfit font-normal;
-    font-size: 13.5px;
+    font-size: 14px;
     line-height: 1.5;
     color: var(--text-primary);
     background: var(--surface-3);
@@ -230,7 +230,7 @@
   }
   .dark body,
   body.dark {
-    background: #151016;
+    background: #0c131e;
   }
   
   /* Make all inputs distinct globally */
@@ -243,7 +243,7 @@
   input:not([type="checkbox"]):not([type="radio"]):focus, 
   select:focus, 
   textarea:focus {
-    @apply ring-2 ring-brand-500/50 border-brand-500 dark:border-brand-500;
+    @apply ring-2 ring-brand-500/25 border-brand-500 dark:border-brand-500;
   }
 }
 
@@ -721,14 +721,14 @@ span.flatpickr-weekday,
 .flatpickr-day.selected.nextMonthDay,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
-  background: #465fff;
+  background: #fa5a05;
   @apply !border-brand-500 !bg-brand-500 hover:!border-brand-500 hover:!bg-brand-500;
 }
 
 .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
-  box-shadow: -10px 0 0 #465fff;
+  box-shadow: -10px 0 0 #fa5a05;
 }
 
 .flatpickr-months .flatpickr-prev-month svg,
@@ -916,7 +916,7 @@ pre[class*="language-"].line-numbers {
   fill: #9cb9ff !important;
 }
 #mapTwo .jvectormap-region[data-code="US"] {
-  fill: #465fff !important;
+  fill: #fa5a05 !important;
 }
 
 .api-token-chart .apexcharts-tooltip {
@@ -932,10 +932,10 @@ pre[class*="language-"].line-numbers {
   stroke-width: 2 !important;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-CA"] {
-  fill: #465fff !important;
+  fill: #fa5a05 !important;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-NV"] {
-  fill: #465fff !important;
+  fill: #fa5a05 !important;
 }
 #mapCustomerPinPoint .jvectormap-region[data-code="US-NY"] {
   fill: #3538cd !important;
@@ -974,7 +974,7 @@ pre[class*="language-"].line-numbers {
   fill: #9cb9ff !important;
 }
 #mapCustomerPinPoint .jvectormap-region.jvectormap-element:hover {
-  fill: #465fff !important;
+  fill: #fa5a05 !important;
 }
 .dark #mapCustomerPinPoint .jvectormap-region.jvectormap-element {
   stroke: #1f2937 !important;
@@ -982,7 +982,7 @@ pre[class*="language-"].line-numbers {
 
 /* Customer map markers: solid filled circles with white ring */
 #mapCustomerPinPoint .jvectormap-marker.jvectormap-element {
-  fill: #465fff !important;
+  fill: #fa5a05 !important;
   stroke: white !important;
   stroke-width: 2 !important;
   fill-opacity: 1 !important;
@@ -1002,7 +1002,7 @@ pre[class*="language-"].line-numbers {
   height: 20px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 2px solid #465fff;
+  border: 2px solid #fa5a05;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
@@ -1011,7 +1011,7 @@ pre[class*="language-"].line-numbers {
   height: 20px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 2px solid #465fff;
+  border: 2px solid #fa5a05;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }

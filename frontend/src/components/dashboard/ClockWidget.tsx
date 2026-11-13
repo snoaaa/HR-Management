@@ -51,21 +51,21 @@ export default function ClockWidget() {
     <Card title="Time clock">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="mono text-3xl font-semibold text-primary-c">
+          <p className="text-4xl font-bold tracking-tight text-primary-c" style={{ fontFeatureSettings: '"tnum"' }}>
             {now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
           </p>
-          <p className="mt-1 text-xs text-muted-c">
-            {isIn ? "You are clocked in." : "You are not clocked in."}
+          <p className="mt-1.5">
+            <span className={`${isIn ? "badge-green" : "badge-gray"} badge-dot`}>{isIn ? "You are clocked in" : "Not clocked in"}</span>
           </p>
         </div>
-        <button type="button" className={isIn ? "btn-secondary" : "btn-teal"} onClick={clock} disabled={busy}>
+        <button type="button" className={isIn ? "btn-secondary btn-lg" : "btn-success btn-lg"} onClick={clock} disabled={busy}>
           {isIn ? "Clock out" : "Clock in"}
         </button>
       </div>
       {clockings.length > 0 && (
         <ul className="mt-4 space-y-1.5">
           {clockings.map((c) => (
-            <li key={c.id} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm" style={{ background: "var(--surface-3)" }}>
+            <li key={c.id} className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm" style={{ background: "var(--surface-3)" }}>
               <span className="text-secondary-c">Today</span>
               <span className="mono text-primary-c">
                 {c.time_in.slice(0, 5)} → {c.time_out ? c.time_out.slice(0, 5) : "…"}

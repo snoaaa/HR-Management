@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import api from "@/api/axiosConfig";
-import { LogoMark } from "@/components/brand/Logo";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/context/ToastContext";
 import { EyeCloseIcon, EyeIcon } from "@/icons";
@@ -12,6 +11,9 @@ export default function SignInForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // BN-176: second step of the login when the second factor is active.
+  const [challenge, setChallenge] = useState<string | null>(null);
+  const [code, setCode] = useState("");
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -23,7 +25,13 @@ export default function SignInForm() {
     setError(null);
     setLoading(true);
     try {
-      const response = await api.post("auth/login/", { username, password });
+      const response = challenge
+        ? await api.post("auth/2fa/verify/", { challenge, code })
+        : await api.post("auth/login/", { username, password });
+      if (response.data.two_factor_required) {
+        setChallenge(response.data.challenge);
+        return;
+      }
       const { access, refresh, user } = response.data;
       login(access, refresh, user);
       toast.success(`Welcome back, ${user.first_name || user.username}!`);
@@ -31,6 +39,7 @@ export default function SignInForm() {
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.detail || "Invalid credentials or server error.");
+      if (err.response?.data?.detail?.includes("expired")) setChallenge(null);
     } finally {
       setLoading(false);
     }
@@ -39,21 +48,41 @@ export default function SignInForm() {
   return (
     <div className="flex flex-1 flex-col justify-center">
       <div className="mx-auto w-full max-w-sm animate-fade-in">
-        <div className="mb-8 text-center">
-          <div className="mb-5 hidden justify-center lg:flex">
-            <LogoMark size={64} />
-          </div>
-          <h1 className="text-2xl font-bold text-primary-c">Sign in</h1>
-          <p className="mt-1 text-sm text-secondary-c">Access your HR workspace with your personal account.</p>
+        <div className="mb-8">
+          <h1 className="text-[28px] font-bold tracking-tight text-primary-c">{challenge ? "Check your phone" : "Welcome back"}</h1>
+          <p className="mt-2 text-sm text-secondary-c">
+            {challenge ? "Enter the 6-digit code shown by your authenticator application." : "Sign in to your HR workspace with your personal account."}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && <div className="error-banner">{error}</div>}
+          {challenge ? (
+            <label className="block">
+              <span className="field-label">Code of your authenticator application</span>
+              <input
+                className="input-field mono !min-h-12 text-center text-lg tracking-[0.4em]"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                autoFocus
+                placeholder="000000"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                required
+              />
+              <button type="button" className="btn-ghost mt-2" onClick={() => { setChallenge(null); setCode(""); }}>
+                Use another account
+              </button>
+            </label>
+          ) : (
+          <>
           <label className="block">
             <span className="field-label">Username</span>
             <input
-              className="input-field py-2.5"
-              placeholder="e.g. jdoe"
+              className="input-field !min-h-12"
+              placeholder="e.g. jean.dupont"
+              autoFocus
               autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -64,7 +93,7 @@ export default function SignInForm() {
             <span className="field-label">Password</span>
             <span className="relative block">
               <input
-                className="input-field py-2.5 pe-11"
+                className="input-field !min-h-12 pe-11"
                 type={showPassword ? "text" : "password"}
                 placeholder="Your password"
                 autoComplete="current-password"
@@ -86,11 +115,16 @@ export default function SignInForm() {
               </button>
             </span>
           </label>
-          <button type="submit" className="btn-primary w-full py-2.5" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
+          </>
+          )}
+          <button type="submit" className="btn-primary btn-lg w-full" disabled={loading}>
+            {loading ? "Signing in…" : challenge ? "Verify and sign in" : "Sign in"}
           </button>
+          <p className="text-center text-[13px] text-muted-c">
+            Forgot your password? Ask your HR department or the administrator to reset it.
+          </p>
           <p className="text-center text-xs text-muted-c">
-            Individual accounts only. Your session closes automatically after a period of inactivity.
+            For your security, the session closes automatically after a period of inactivity.
           </p>
         </form>
       </div>

@@ -15,7 +15,14 @@ export type Module =
   | "payroll"
   | "documents"
   | "users"
-  | "audit";
+  | "audit"
+  | "accounting"
+  | "careers"
+  | "reports"
+  | "evaluation"
+  | "recruitment"
+  | "training"
+  | "imports";
 export type Action = "consult" | "create" | "modify" | "delete" | "validate" | "print" | "export";
 
 interface PermissionsState {
@@ -58,6 +65,7 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [timeoutMinutes, setTimeoutMinutes] = useState(15);
   const timer = useRef<number | undefined>(undefined);
+  const warnTimer = useRef<number | undefined>(undefined);
 
   const load = useCallback(async () => {
     if (!user) {
@@ -92,6 +100,13 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     const reset = () => {
       window.clearTimeout(timer.current);
+      window.clearTimeout(warnTimer.current);
+      if (timeoutMinutes > 1) {
+        warnTimer.current = window.setTimeout(
+          () => toast.warning("Are you still there? You will be signed out in one minute unless you move the mouse or press a key."),
+          (timeoutMinutes - 1) * 60_000,
+        );
+      }
       timer.current = window.setTimeout(() => {
         toast.warning("Your session was closed after a period of inactivity.");
         logout();
@@ -101,22 +116,25 @@ export function PermissionsProvider({ children }: { children: ReactNode }) {
     ACTIVITY_EVENTS.forEach((event) => window.addEventListener(event, reset, { passive: true }));
     return () => {
       window.clearTimeout(timer.current);
+      window.clearTimeout(warnTimer.current);
       ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, reset));
     };
   }, [user, timeoutMinutes]);
 
+  // The system administrator has access to every module and every action.
+  const isSystemAdmin = state.role === "SYSTEM_ADMINISTRATOR";
   const can = useCallback(
-    (module: Module, action: Action = "consult") => (state.permissions[module] || []).includes(action),
-    [state.permissions],
+    (module: Module, action: Action = "consult") => isSystemAdmin || (state.permissions[module] || []).includes(action),
+    [state.permissions, isSystemAdmin],
   );
 
   const value: PermissionsContextType = {
     ...state,
     loading,
     can,
-    isHR: ["HR_MANAGER", "HR_OFFICER"].includes(state.role),
+    isHR: isSystemAdmin || ["HR_MANAGER", "HR_OFFICER"].includes(state.role),
     isAdmin: ["SYSTEM_ADMINISTRATOR", "HR_MANAGER"].includes(state.role),
-    isManager: state.role === "HEAD_OF_DEPARTMENT" || state.manages_departments.length > 0,
+    isManager: isSystemAdmin || state.role === "HEAD_OF_DEPARTMENT" || state.manages_departments.length > 0,
     refresh: load,
   };
 

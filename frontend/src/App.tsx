@@ -18,6 +18,7 @@ import EmployeeProfile from "./pages/Employees/EmployeeProfile";
 
 import OrganisationSettings from "./pages/Organisation/OrganisationSettings";
 import { ToastProvider } from "./context/ToastContext";
+import { ConfirmHost } from "./components/kit/confirm";
 import { PermissionsProvider } from "./context/PermissionsContext";
 import ContractList from "./pages/Contracts/ContractList";
 import ContractDetail from "./pages/Contracts/ContractDetail";
@@ -29,14 +30,23 @@ import Notifications from "./pages/Notifications/Notifications";
 import PermissionMatrix from "./pages/Admin/PermissionMatrix";
 import AdminSettings from "./pages/Admin/AdminSettings";
 import Planning from "./pages/Planning/Planning";
+import TimetableEditor from "./pages/Planning/TimetableEditor";
 import PayrollCycle from "./pages/Payroll/PayrollCycle";
-import PayslipsList from "./pages/Payroll/PayslipsList";
-import PayrollSimulation from "./pages/Payroll/PayrollSimulation";
+import PeriodCockpit from "./pages/Payroll/PeriodCockpit";
+import { PayslipDetail, PayslipList } from "./pages/Payroll/Payslips";
+import Simulation from "./pages/Payroll/Simulation";
 import PayrollSettings from "./pages/Payroll/PayrollSettings";
+import Accounting from "./pages/Accounting/Accounting";
+import Careers from "./pages/Careers/Careers";
+import Reports from "./pages/Reports/Reports";
+import Evaluation from "./pages/Evaluation/Evaluation";
+import EvaluationForm from "./pages/Evaluation/EvaluationForm";
+import Recruitment from "./pages/Recruitment/Recruitment";
+import CareersPage from "./pages/Recruitment/CareersPage";
+import Training from "./pages/Training/Training";
 import Documents from "./pages/Documents/Documents";
-import MyTime from "./pages/MySpace/MyTime";
-import MyPayslips from "./pages/MySpace/MyPayslips";
-import MyDocuments from "./pages/MySpace/MyDocuments";
+import DataAdmin from "./pages/Admin/DataAdmin";
+import { MyDocuments, MyEvaluations, MyPayslips, MyTime, MyTraining } from "./pages/MySpace/MySpace";
 
 export default function App() {
   return (
@@ -45,6 +55,7 @@ export default function App() {
         <AuthProvider>
         <PermissionsProvider>
           <ScrollToTop />
+          <ConfirmHost />
           <Routes>
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
@@ -72,16 +83,28 @@ export default function App() {
               <Route path="/admin/permissions" element={<PermissionMatrix />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
 
-              {/* Time, Planning, Payroll & Documents */}
               <Route path="/planning" element={<Planning />} />
+              <Route path="/planning/:id" element={<TimetableEditor />} />
               <Route path="/payroll" element={<PayrollCycle />} />
-              <Route path="/payroll/payslips" element={<PayslipsList />} />
-              <Route path="/payroll/simulation" element={<PayrollSimulation />} />
+              <Route path="/payroll/periods/:id" element={<PeriodCockpit />} />
+              <Route path="/payroll/payslips" element={<PayslipList />} />
+              <Route path="/payroll/payslips/:id" element={<PayslipDetail />} />
+              <Route path="/payroll/simulation" element={<Simulation />} />
               <Route path="/payroll/settings" element={<PayrollSettings />} />
+              <Route path="/accounting" element={<Accounting />} />
+              <Route path="/careers-management" element={<Careers />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/evaluation" element={<Evaluation />} />
+              <Route path="/evaluation/:id" element={<EvaluationForm />} />
+              <Route path="/recruitment" element={<Recruitment />} />
+              <Route path="/training" element={<Training />} />
               <Route path="/documents" element={<Documents />} />
+              <Route path="/admin/data" element={<DataAdmin />} />
               <Route path="/my/time" element={<MyTime />} />
               <Route path="/my/payslips" element={<MyPayslips />} />
               <Route path="/my/documents" element={<MyDocuments />} />
+              <Route path="/my/evaluations" element={<MyEvaluations />} />
+              <Route path="/my/training" element={<MyTraining />} />
 
               {/* Others Page */}
               <Route path="/profile" element={<UserProfiles />} />
@@ -91,6 +114,7 @@ export default function App() {
 
           {/* Auth Layout */}
           <Route path="/signin" element={<SignIn />} />
+          <Route path="/careers" element={<CareersPage />} />
           <Route path="/signup" element={<SignUp />} />
 
           {/* Fallback Route */}

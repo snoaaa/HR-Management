@@ -281,7 +281,7 @@ const Calendar: React.FC = () => {
                 let cls = "relative! p-0.5 sm:p-1!";
                 if (data.isToday)
                   cls +=
-                    " isolate rounded-sm! bg-gray-100! dark:bg-gray-800/40! font-semibold text-brand-500 dark:text-brand-400";
+                    " isolate rounded-sm! bg-gray-100! dark:bg-gray-800/40! font-semibold text-brand-600 dark:text-brand-400";
                 if (data.isOther) cls += " bg-transparent!";
                 return cls;
               },
@@ -300,7 +300,7 @@ const Calendar: React.FC = () => {
               moreLinkContent() {
                 return (
                   <span>
-                    <BookmarkIcon className="size-4.5 text-brand-500 sm:size-5.5" />
+                    <BookmarkIcon className="size-4.5 text-brand-600 sm:size-5.5" />
                   </span>
                 );
               },
@@ -341,7 +341,7 @@ const Calendar: React.FC = () => {
                 if (isMobile) {
                   return (
                     <span>
-                      <BookmarkIcon className="size-4.5 text-brand-500 sm:size-5.5" />
+                      <BookmarkIcon className="size-4.5 text-brand-600 sm:size-5.5" />
                     </span>
                   );
                 }
@@ -366,7 +366,7 @@ const Calendar: React.FC = () => {
               moreLinkContent: isMobile
                 ? () => (
                     <span>
-                      <BookmarkIcon className="size-4.5 text-brand-500 sm:size-5.5" />
+                      <BookmarkIcon className="size-4.5 text-brand-600 sm:size-5.5" />
                     </span>
                   )
                 : undefined,
@@ -388,7 +388,7 @@ const Calendar: React.FC = () => {
               dayHeaderInnerClass: (data: DayHeaderInfo) =>
                 `px-1.5! sm:px-3! py-2.5! sm:py-3.5! text-center! text-[11px]! sm:text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
                   data.isToday
-                    ? "font-semibold! text-brand-500! dark:text-brand-400!"
+                    ? "font-semibold! text-brand-600! dark:text-brand-400!"
                     : ""
                 }`,
               slotHeaderDividerClass:
@@ -421,7 +421,7 @@ const Calendar: React.FC = () => {
               moreLinkContent: isMobile
                 ? () => (
                     <span>
-                      <BookmarkIcon className="size-4.5 text-brand-500 sm:size-5.5" />
+                      <BookmarkIcon className="size-4.5 text-brand-600 sm:size-5.5" />
                     </span>
                   )
                 : undefined,
@@ -443,7 +443,7 @@ const Calendar: React.FC = () => {
               dayHeaderInnerClass: (data: DayHeaderInfo) =>
                 `px-2! sm:px-4! py-2.5! sm:py-3.5! text-center! text-xs! font-medium! text-gray-500! uppercase! dark:text-gray-400! ${
                   data.isToday
-                    ? "font-semibold! text-brand-500! dark:text-brand-400!"
+                    ? "font-semibold! text-brand-600! dark:text-brand-400!"
                     : ""
                 }`,
               slotHeaderDividerClass:

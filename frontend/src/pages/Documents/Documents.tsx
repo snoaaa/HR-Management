@@ -1,311 +1,168 @@
 import { useState } from "react";
-import api from "@/api/axiosConfig";
 import { apiError, downloadFile, fmt } from "@/api/helpers";
-import DataTable from "@/components/kit/DataTable";
-import { useApiList, useHashTab, useOptions } from "@/components/kit/hooks";
-import { Card, Modal, PageHeader, StatusBadge, Tabs } from "@/components/kit/ui";
+import CrudSection from "@/components/kit/CrudSection";
+import { FormGrid } from "@/components/kit/Form";
+import { useHashTab } from "@/components/kit/hooks";
+import { employeeField, opt } from "@/components/kit/options";
+import SearchSelect from "@/components/kit/SearchSelect";
+import { Badge, Banner, Card, PageHeader, StatusBadge, Tabs } from "@/components/kit/ui";
 import { usePermissions } from "@/context/PermissionsContext";
 import { useToast } from "@/context/ToastContext";
 
-const CERTIFICATE_TYPES = [
-  { code: "EMPLOYMENT_ATTESTATION", label: "Employment Attestation (Attestation de travail)" },
-  { code: "WORK_CERTIFICATE", label: "Work Certificate (Certificat de travail)" },
-  { code: "SALARY_ATTESTATION", label: "Salary Attestation (Attestation de salaire)" },
-  { code: "PRESENCE_ATTESTATION", label: "Presence Attestation (Attestation de présence)" },
-];
+export const CERTIFICATES = opt([
+  ["WORK_CERTIFICATE", "Work certificate"],
+  ["EMPLOYMENT_ATTESTATION", "Employment attestation"],
+  ["SALARY_ATTESTATION", "Salary attestation"],
+  ["PRESENCE_ATTESTATION", "Attestation of presence"],
+]);
+const DECISIONS = opt([["PROMOTION_DECISION", "Promotion decision"], ["TRANSFER_DECISION", "Transfer decision"], ["DISCIPLINARY_LETTER", "Disciplinary letter"]]);
+const CATEGORIES = opt([["CONTRACT", "Contract"], ["CERTIFICATE", "Certificate"], ["LEAVE", "Leave"], ["PAYROLL", "Payroll"], ["DECISION", "Decision"], ["OTHER", "Other"]]);
 
-function GenerateCertificate() {
-  const employees = useOptions("employees/", (e) => `${e.full_name || `${e.surname} ${e.given_names}`} (${e.matriculation})`);
-  const [employeeId, setEmployeeId] = useState("");
-  const [certCode, setCertCode] = useState(CERTIFICATE_TYPES[0].code);
-  const [generating, setGenerating] = useState(false);
+function Generate() {
   const toast = useToast();
-
-  const handleGenerate = async () => {
-    if (!employeeId) {
-      toast.error("Please select an employee");
-      return;
-    }
-    setGenerating(true);
+  const [employee, setEmployee] = useState<number | null>(null);
+  const [decision, setDecision] = useState<Record<string, any>>({ code: "PROMOTION_DECISION" });
+  const issue = async (code: string) => {
+    if (!employee) return toast.error("Choose an employee first.");
     try {
-      await downloadFile(`documents/certificates/${certCode}/?employee=${employeeId}`, {
-        method: "get",
-        filename: `${certCode.toLowerCase()}_${employeeId}.pdf`,
-        open: true,
-      });
-      toast.success("Certificate generated and opened");
-    } catch (err) {
-      toast.error(apiError(err));
-    } finally {
-      setGenerating(false);
+      await downloadFile(`documents/certificates/${code}/`, { params: { employee } });
+    } catch (err: any) {
+      toast.error(err.message);
     }
   };
-
   return (
-    <Card title="Issue an official certificate (BN-123)">
-      <p className="text-xs text-muted-c mb-4">Generate and archive an attested legal document from official templates.</p>
-      <div className="max-w-xl space-y-4">
-        <label>
-          <span className="field-label">Employee</span>
-          <select className="input-field" value={employeeId} onChange={(e) => setEmployeeId(e.target.value)}>
-            <option value="">Select employee...</option>
-            {employees.map((e) => (
-              <option key={e.value} value={e.value}>
-                {e.label}
-              </option>
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Card title="Certificates and attestations">
+        <div className="space-y-3">
+          <SearchSelect url="employees/" value={employee} onChange={(v) => setEmployee(v ? Number(v) : null)} placeholder="Search the employee by name or matriculation…" />
+          <div className="flex flex-wrap gap-2">
+            {CERTIFICATES.map((c) => (
+              <button key={c.value} type="button" className="btn-secondary" onClick={() => issue(c.value)}>{c.label}</button>
             ))}
-          </select>
-        </label>
-
-        <label>
-          <span className="field-label">Document type</span>
-          <select className="input-field" value={certCode} onChange={(e) => setCertCode(e.target.value)}>
-            {CERTIFICATE_TYPES.map((t) => (
-              <option key={t.code} value={t.code}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="pt-2">
-          <button type="button" className="btn-primary" disabled={generating} onClick={handleGenerate}>
-            {generating ? "Generating PDF..." : "Generate and download PDF →"}
-          </button>
+          </div>
+          <p className="text-xs text-muted-c">Every document is archived with its date, author and recipient.</p>
         </div>
-      </div>
-    </Card>
+      </Card>
+      <Card title="Decisions and letters">
+        <form className="space-y-3" onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            await downloadFile("documents/decisions/", { method: "post", data: decision });
+          } catch (err: any) {
+            toast.error(err.message);
+          }
+        }}>
+          <FormGrid
+            fields={[
+              { name: "code", label: "Document", type: "select", required: true, options: DECISIONS },
+              { ...employeeField(), full: false },
+              { name: "subject", label: "Subject", required: true, full: true },
+              { name: "effective_date", label: "Effective date", type: "date" },
+              { name: "details", label: "Details", type: "textarea" },
+            ]}
+            values={decision}
+            onChange={(n, v) => setDecision((p) => ({ ...p, [n]: v }))}
+          />
+          <button type="submit" className="btn-primary">Generate</button>
+        </form>
+      </Card>
+    </div>
   );
 }
 
-function IssuedArchive() {
-  const { rows, loading } = useApiList<any>("documents/issued/");
+/** M-12 – templates, generation and archive of the documents. */
+export default function Documents() {
+  const [tab, setTab] = useHashTab("generate");
   const toast = useToast();
-
-  const downloadDoc = async (doc: any) => {
-    try {
-      await downloadFile(`documents/issued/${doc.id}/download/`, {
-        filename: `${doc.reference || "document"}.pdf`,
-        open: true,
-      });
-    } catch (err) {
-      toast.error(apiError(err));
-    }
-  };
-
-  return (
-    <Card padded={false} title="Issued documents archive (BN-127)">
-      <DataTable
-        rows={rows}
-        loading={loading}
-        empty="No issued documents in the archive yet."
-        columns={[
-          {
-            key: "reference",
-            header: "Reference",
-            mono: true,
-            render: (d: any) => <span className="font-semibold text-primary-c">{d.reference}</span>,
-          },
-          { key: "title", header: "Document Title" },
-          { key: "employee_name", header: "Employee" },
-          { key: "issued_at", header: "Issued at", render: (d: any) => fmt.datetime(d.issued_at) },
-          { key: "issued_by_name", header: "Issued by" },
-          {
-            key: "actions",
-            header: "",
-            align: "end",
-            render: (d: any) => (
-              <button type="button" className="btn-ghost text-xs" onClick={() => downloadDoc(d)}>
-                Download PDF
-              </button>
-            ),
-          },
-        ]}
-      />
-    </Card>
-  );
-}
-
-function TemplatesEditor() {
-  const { rows, loading, reload } = useApiList<any>("documents/templates/");
-  const [editing, setEditing] = useState<any>(null);
-  const toast = useToast();
-
-  const previewTemplate = async (template: any) => {
-    try {
-      await downloadFile(`documents/templates/${template.id}/preview/`, {
-        filename: `preview_${template.code}.pdf`,
-        open: true,
-      });
-    } catch (err) {
-      toast.error(apiError(err));
-    }
-  };
-
+  const { can } = usePermissions();
+  const [previewFor, setPreviewFor] = useState<number | null>(null);
   return (
     <>
-      <Card padded={false} title="Document templates (BN-125)">
-        <DataTable
-          rows={rows}
-          loading={loading}
+      <PageHeader title="Documents" eyebrow="Documents" subtitle="Every document carries the logo and the legal identification of the organisation." />
+      <Tabs active={tab} onChange={setTab} tabs={[
+        { id: "generate", label: "Generate" },
+        { id: "requests", label: "Requests" },
+        { id: "issued", label: "Issued documents" },
+        { id: "templates", label: "Templates", hidden: !can("documents", "modify") },
+      ]} />
+      {tab === "generate" && <Generate />}
+      {tab === "requests" && (
+        <CrudSection
+          endpoint="documents/requests/"
+          title="Requests of the employees"
+          canCreate={false}
+          canEdit={false}
+          canDelete={false}
+          rowActions={[{
+            label: "Issue", show: (r: any) => r.status === "PENDING", onClick: async (r: any, reload) => {
+              try {
+                await downloadFile(`documents/certificates/${r.template_code}/`, { params: { employee: r.employee } });
+                reload();
+              } catch (err: any) {
+                toast.error(err.message);
+              }
+            },
+          }]}
           columns={[
-            {
-              key: "name",
-              header: "Template",
-              render: (t: any) => (
-                <div>
-                  <span className="font-medium text-primary-c">{t.name}</span>
-                  <span className="block text-[11px] mono text-muted-c">{t.code}</span>
-                </div>
-              ),
-            },
-            { key: "category", header: "Category" },
-            { key: "updated_at", header: "Last modified", render: (t: any) => fmt.datetime(t.updated_at) },
-            {
-              key: "actions",
-              header: "",
-              align: "end",
-              render: (t: any) => (
-                <div className="flex justify-end gap-1">
-                  <button type="button" className="btn-ghost text-xs" onClick={() => previewTemplate(t)}>
-                    Preview PDF
-                  </button>
-                  <button type="button" className="btn-ghost text-xs" onClick={() => setEditing(t)}>
-                    Edit HTML
-                  </button>
-                </div>
-              ),
-            },
+            { key: "created_at", header: "Asked on", render: (r: any) => fmt.date(r.created_at) },
+            { key: "employee_name", header: "Employee" },
+            { key: "template_code", header: "Document", render: (r: any) => CERTIFICATES.find((c) => c.value === r.template_code)?.label || r.template_code },
+            { key: "reason", header: "Reason" },
+            { key: "status", header: "Status", render: (r: any) => <StatusBadge value={r.status} /> },
           ]}
         />
-      </Card>
-
-      {editing && (
-        <Modal open={true} onClose={() => setEditing(null)} title={`Edit template: ${editing.name}`} size="xl">
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await api.patch(`documents/templates/${editing.id}/`, {
-                  name: editing.name,
-                  body: editing.body,
-                });
-                toast.success("Template saved");
-                setEditing(null);
-                reload();
-              } catch (err) {
-                toast.error(apiError(err));
-              }
-            }}
-            className="space-y-4"
-          >
-            <label>
-              <span className="field-label">Template name</span>
-              <input
-                className="input-field"
-                value={editing.name}
-                onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                required
-              />
-            </label>
-            <label>
-              <span className="field-label">HTML / Django Template Body</span>
-              <textarea
-                className="input-field font-mono text-xs"
-                rows={12}
-                value={editing.body}
-                onChange={(e) => setEditing({ ...editing, body: e.target.value })}
-                required
-              />
-            </label>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" className="btn-secondary" onClick={() => setEditing(null)}>
-                Cancel
-              </button>
-              <button type="submit" className="btn-primary">
-                Save template
-              </button>
-            </div>
-          </form>
-        </Modal>
+      )}
+      {tab === "issued" && (
+        <CrudSection
+          endpoint="documents/issued/"
+          title="Archive of the issued documents"
+          canCreate={false}
+          canEdit={false}
+          canDelete={false}
+          rowActions={[{ label: "Download", onClick: (d: any) => downloadFile(`documents/issued/${d.id}/download/`).catch((err) => toast.error(err.message)) }]}
+          columns={[
+            { key: "issued_at", header: "Issued", render: (d: any) => fmt.datetime(d.issued_at) },
+            { key: "reference", header: "Reference", mono: true },
+            { key: "title", header: "Document" },
+            { key: "recipient", header: "Recipient" },
+            { key: "issued_by_name", header: "By" },
+            { key: "is_duplicate", header: "", render: (d: any) => (d.is_duplicate ? <Badge tone="orange">Duplicate</Badge> : null) },
+          ]}
+        />
+      )}
+      {tab === "templates" && (
+        <>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <Banner tone="info">Templates use variables such as {"{{ employee.surname }}"}, {"{{ company.corporate_name }}"}, {"{{ today|date:\"d/m/Y\" }}"}, {"{{ amount|money }}"}.</Banner>
+            <SearchSelect className="w-72" url="employees/" value={previewFor} onChange={(v) => setPreviewFor(v ? Number(v) : null)} placeholder="Employee used for the previews…" />
+          </div>
+          <CrudSection
+            endpoint="documents/templates/"
+            title="Document templates"
+            modalSize="xl"
+            fields={[
+              { name: "code", label: "Code", required: true },
+              { name: "name", label: "Name", required: true },
+              { name: "category", label: "Category", type: "select", options: CATEGORIES },
+              { name: "footer", label: "Footer" },
+              { name: "body", label: "Body (HTML)", type: "textarea", rows: 18, full: true },
+              { name: "signature_block", label: "Signature block (HTML)", type: "textarea", rows: 4, full: true },
+              { name: "is_active", label: "Active", type: "checkbox" },
+            ]}
+            defaults={{ category: "OTHER", is_active: true }}
+            rowActions={[{
+              label: "Preview", onClick: (t: any) => downloadFile(`documents/templates/${t.id}/preview/`, { params: previewFor ? { employee: previewFor } : {} })
+                .catch((err) => toast.error(apiError(err) || err.message)),
+            }]}
+            columns={[
+              { key: "name", header: "Template", render: (t: any) => <span className="font-medium text-primary-c">{t.name}</span> },
+              { key: "code", header: "Code", mono: true },
+              { key: "category", header: "Category" },
+              { key: "updated_at", header: "Modified", render: (t: any) => `${fmt.datetime(t.updated_at)}${t.updated_by_name ? ` by ${t.updated_by_name}` : ""}` },
+            ]}
+          />
+        </>
       )}
     </>
   );
 }
-
-function DocumentRequests() {
-  const { rows, loading, reload } = useApiList<any>("documents/requests/");
-  const toast = useToast();
-
-  const handleIssue = async (req: any) => {
-    try {
-      await downloadFile(`documents/certificates/${req.template_code}/?employee=${req.employee}`, {
-        method: "post",
-        filename: `${req.template_code.toLowerCase()}_${req.employee}.pdf`,
-        open: true,
-      });
-      toast.success("Certificate issued and downloaded");
-      reload();
-    } catch (err) {
-      toast.error(apiError(err));
-    }
-  };
-
-  return (
-    <Card padded={false} title="Employee attestation requests (BN-152)">
-      <DataTable
-        rows={rows}
-        loading={loading}
-        empty="No pending document request."
-        columns={[
-          { key: "employee_name", header: "Employee" },
-          { key: "template_code", header: "Requested Document" },
-          { key: "reason", header: "Reason" },
-          { key: "created_at", header: "Requested at", render: (r: any) => fmt.datetime(r.created_at) },
-          { key: "status", header: "Status", render: (r: any) => <StatusBadge value={r.status} /> },
-          {
-            key: "actions",
-            header: "",
-            align: "end",
-            render: (r: any) =>
-              r.status === "PENDING" && (
-                <button type="button" className="btn-primary text-xs" onClick={() => handleIssue(r)}>
-                  Issue document
-                </button>
-              ),
-          },
-        ]}
-      />
-    </Card>
-  );
-}
-
-export default function Documents() {
-  const [tab, setTab] = useHashTab("generate");
-  const { can } = usePermissions();
-
-  return (
-    <>
-      <PageHeader
-        eyebrow="Documents"
-        title="Document Management (M-12)"
-        subtitle="Issue legal certificates, customize document templates, and browse the certified archive."
-      />
-      <Tabs
-        active={tab}
-        onChange={setTab}
-        tabs={[
-          { id: "generate", label: "Issue certificate (BN-123)" },
-          { id: "archive", label: "Issued archive (BN-127)" },
-          { id: "requests", label: "Employee requests (BN-152)" },
-          ...(can("documents", "modify") ? [{ id: "templates", label: "Templates editor (BN-125)" }] : []),
-        ]}
-      />
-      {tab === "generate" && <GenerateCertificate />}
-      {tab === "archive" && <IssuedArchive />}
-      {tab === "requests" && <DocumentRequests />}
-      {tab === "templates" && <TemplatesEditor />}
-    </>
-  );
-}
-

@@ -6,8 +6,8 @@ export default function ChangePassword() {
   return (
     <>
       <PageMeta
-        title="Change Password | HRMS Dashboard"
-        description="Change your password for HRMS"
+        title="Change your password | Saint Jean HRMS"
+        description="Saint Jean HRMS – human resources management"
       />
       <AuthLayout>
         <ChangePasswordForm />

@@ -22,7 +22,7 @@ export default function UserMetaCard() {
           <div className="flex-1">
             <div className="mb-6 flex flex-col gap-5 sm:flex-row xl:items-center xl:justify-between">
               <div className="flex w-full flex-col items-start gap-6 sm:flex-row sm:items-center">
-                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-brand-100 text-3xl font-bold text-brand-600 dark:bg-brand-900 dark:text-brand-300">
+                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-brand-100 text-3xl font-bold text-brand-600 dark:bg-brand-900 dark:text-brand-400">
                   {user?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U'}
                 </div>
                 <div className="text-left">

@@ -3,7 +3,9 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.http import FileResponse
+from django.urls import include, path, re_path
+from django.views.static import serve
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
@@ -35,3 +37,21 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+elif settings.SERVE_MEDIA:
+    urlpatterns += [
+        re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT})
+    ]
+
+
+def frontend(request, *args, **kwargs):
+    """Entry page of the React application (it handles its own routes)."""
+    response = FileResponse(open(settings.FRONTEND_DIST / "index.html", "rb"))
+    response["Cache-Control"] = "no-cache"
+    return response
+
+
+if settings.SERVE_FRONTEND:
+    # Everything that is not the API, the admin or a file goes to the SPA.
+    urlpatterns += [
+        re_path(r"^(?!api/|admin/|media/|static/|assets/).*$", frontend),
+    ]
