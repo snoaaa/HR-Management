@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/', // Assuming Django runs on 8000
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -31,7 +33,8 @@ api.interceptors.response.use(
       if (refreshToken) {
         try {
           // Attempt to refresh the token
-          const res = await axios.post('http://localhost:8000/api/auth/refresh/', {
+          const refreshUrl = `${API_BASE_URL.replace(/\/+$/, '')}/auth/refresh/`;
+          const res = await axios.post(refreshUrl, {
             refresh: refreshToken
           });
           
