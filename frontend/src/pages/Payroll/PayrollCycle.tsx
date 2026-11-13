@@ -12,7 +12,7 @@ interface Period {
   id: number;
   year: number;
   month: number;
-  status: "OPEN" | "CALCULATED" | "VALIDATED" | "LOCKED";
+  status: "OPEN" | "OPENED" | "CALCULATED" | "VALIDATED" | "PAID" | "CLOSED" | "LOCKED";
   status_label: string;
   totals?: {
     employee_count?: number;
@@ -52,7 +52,7 @@ export default function PayrollCycle() {
     }
     setBusy(p.id);
     try {
-      const res = await api.post(`payroll/periods/${p.id}/validate_period/`);
+      const res = await api.post(`payroll/periods/${p.id}/validate/`);
       toast.success(res.data.detail || `Period ${p.month}/${p.year} validated and posted to accounting`);
       reload();
     } catch (err) {
@@ -159,7 +159,7 @@ export default function PayrollCycle() {
               align: "end",
               render: (p) => (
                 <div className="flex flex-wrap items-center justify-end gap-1.5">
-                  {p.status === "OPEN" && can("payroll", "modify") && (
+                  {(p.status === "OPEN" || p.status === "OPENED") && can("payroll", "modify") && (
                     <button
                       type="button"
                       disabled={busy === p.id}
@@ -182,7 +182,7 @@ export default function PayrollCycle() {
                         <button
                           type="button"
                           disabled={busy === p.id}
-                          className="btn-primary text-xs bg-green-600 hover:bg-green-700"
+                          className="btn-primary text-xs bg-emerald-600 hover:bg-emerald-700"
                           onClick={() => validatePeriod(p)}
                         >
                           Validate (BN-108)
@@ -191,19 +191,19 @@ export default function PayrollCycle() {
                     </>
                   )}
 
-                  {p.status === "VALIDATED" && can("payroll", "validate") && (
-                    <button type="button" className="btn-ghost text-xs text-purple-600" onClick={() => lockPeriod(p)}>
+                  {(p.status === "VALIDATED" || p.status === "PAID") && can("payroll", "validate") && (
+                    <button type="button" className="btn-ghost text-xs text-indigo-600" onClick={() => lockPeriod(p)}>
                       Lock period
                     </button>
                   )}
 
-                  {["CALCULATED", "VALIDATED", "LOCKED"].includes(p.status) && (
+                  {["CALCULATED", "VALIDATED", "PAID", "LOCKED", "CLOSED"].includes(p.status) && (
                     <div className="flex items-center gap-1 border-l pl-2 ml-1" style={{ borderColor: "var(--border-color)" }}>
                       <button
                         type="button"
                         className="btn-ghost text-xs"
                         title="Download payroll book"
-                        onClick={() => downloadFile(`payroll/periods/${p.id}/payroll_book/?format=pdf`, { filename: `payroll_book_${p.month}_${p.year}.pdf` })}
+                        onClick={() => downloadFile(`payroll/periods/${p.id}/payroll_book/?file_format=pdf`, { filename: `payroll_book_${p.month}_${p.year}.pdf` })}
                       >
                         Book
                       </button>
@@ -211,7 +211,7 @@ export default function PayrollCycle() {
                         type="button"
                         className="btn-ghost text-xs"
                         title="Batch print all payslips"
-                        onClick={() => downloadFile(`payroll/periods/${p.id}/payslips_batch/`, { filename: `payslips_${p.month}_${p.year}.pdf` })}
+                        onClick={() => downloadFile(`payroll/periods/${p.id}/batch_payslips/`, { method: "post", filename: `payslips_${p.month}_${p.year}.pdf` })}
                       >
                         Payslips
                       </button>
@@ -227,7 +227,7 @@ export default function PayrollCycle() {
                         type="button"
                         className="btn-ghost text-xs"
                         title="Statutory declarations (DIPE / CNPS)"
-                        onClick={() => downloadFile(`payroll/periods/${p.id}/declarations/?format=xlsx`, { filename: `declarations_${p.month}_${p.year}.xlsx` })}
+                        onClick={() => downloadFile(`payroll/periods/${p.id}/declaration_export/?file_format=xlsx`, { filename: `declarations_${p.month}_${p.year}.xlsx` })}
                       >
                         DIPE/CNPS
                       </button>

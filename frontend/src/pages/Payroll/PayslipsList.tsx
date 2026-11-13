@@ -33,8 +33,8 @@ export default function PayslipsList() {
 
   const printPdf = async (p: Payslip, duplicate = false) => {
     try {
-      const url = duplicate ? `payroll/payslips/${p.id}/duplicate/` : `payroll/payslips/${p.id}/pdf/`;
-      await downloadFile(url, { filename: `bulletin_${p.matriculation || p.id}.pdf`, open: true });
+      const url = duplicate ? `payroll/payslips/${p.id}/pdf/?duplicate=1` : `payroll/payslips/${p.id}/pdf/`;
+      await downloadFile(url, { filename: `bulletin_${p.matriculation || p.id}${duplicate ? "_DUPLICATE" : ""}.pdf`, open: true });
     } catch (err) {
       toast.error(apiError(err));
     }

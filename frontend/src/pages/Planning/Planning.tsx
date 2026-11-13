@@ -241,28 +241,28 @@ function TimetableGridModal({ timetable, onClose, onUpdated }: { timetable: Time
               </thead>
               <tbody className="divide-y" style={{ borderColor: "var(--border-color)" }}>
                 {gridData.rows?.map((row: any) => (
-                  <tr key={row.employee?.id || row.employee}>
+                  <tr key={row.employee_id || row.employee}>
                     <td className="whitespace-nowrap p-2 font-medium">
-                      {row.employee?.name || row.employee}
-                      <span className="block text-[10px] text-muted-c">{row.employee?.matriculation}</span>
+                      {row.employee}
+                      <span className="block text-[10px] text-muted-c">ID: {row.employee_id}</span>
                     </td>
-                    {row.cells?.map((cell: any[], idx: number) => {
-                      const day = gridData.days[idx];
+                    {gridData.days?.map((day: string) => {
+                      const cellEntries: any[] = row.cells?.[day] || [];
                       return (
-                        <td key={day} className="p-1 text-center align-top">
+                        <td key={day} className="p-1 text-center align-top border-r border-slate-100 dark:border-slate-800">
                           <div className="flex flex-col gap-1 min-h-[38px] justify-center items-center">
-                            {cell?.map((entry: any) => (
+                            {cellEntries.map((entry: any) => (
                               <span
-                                key={entry.id}
+                                key={entry.entry_id}
                                 className="group relative inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-semibold text-white shadow-xs"
-                                style={{ backgroundColor: entry.shift?.color || "#00A09D" }}
-                                title={`${entry.shift?.name} (${entry.shift?.start_time?.slice(0, 5)} - ${entry.shift?.end_time?.slice(0, 5)})`}
+                                style={{ backgroundColor: entry.color || "#4F46E5" }}
+                                title={`${entry.name} (${entry.code})`}
                               >
-                                {entry.shift?.code}
+                                {entry.code}
                                 {can("planning", "modify") && timetable.status === "DRAFT" && (
                                   <button
                                     type="button"
-                                    onClick={() => removeEntry(entry.id)}
+                                    onClick={() => removeEntry(entry.entry_id)}
                                     className="ml-0.5 opacity-60 hover:opacity-100"
                                   >
                                     ×
@@ -273,7 +273,7 @@ function TimetableGridModal({ timetable, onClose, onUpdated }: { timetable: Time
                             {can("planning", "modify") && timetable.status === "DRAFT" && (
                               <button
                                 type="button"
-                                onClick={() => setAssigning({ employeeId: row.employee?.id || row.employee, day })}
+                                onClick={() => setAssigning({ employeeId: row.employee_id, day })}
                                 className="text-muted-c opacity-40 hover:opacity-100 text-sm hover:text-brand-500"
                               >
                                 +

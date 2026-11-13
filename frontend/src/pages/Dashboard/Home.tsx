@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { CheckCircle2, Users, FileText, Calendar, Banknote } from "lucide-react";
 import api from "@/api/axiosConfig";
 import { asList, fmt } from "@/api/helpers";
 import ClockWidget from "@/components/dashboard/ClockWidget";
@@ -36,10 +37,10 @@ function useData<T>(url: string | null, list = true) {
   return data;
 }
 
-const PURPLE = "var(--odoo-purple)";
-const TEAL = "var(--odoo-teal)";
-const SAP_BLUE = "var(--sap-blue)";
-const SAP_CRITICAL = "var(--sap-critical)";
+const PRIMARY = "var(--primary)";
+const ACCENT = "var(--accent)";
+const SUCCESS = "var(--success)";
+const WARNING = "var(--warning)";
 
 export default function Home() {
   const { user } = useAuth();
@@ -69,20 +70,56 @@ export default function Home() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiTile label="Waiting for my approval" value={approvals.length} accent={PURPLE} hint={<Link to="/approvals" className="text-brand-500 hover:underline dark:text-brand-300">Open the inbox →</Link>} />
-        {employees && <KpiTile label={hr ? "Active employees" : "My team"} value={activeEmployees} accent={TEAL} hint={`${employees.length} records in total`} />}
-        {perms.can("contracts", "modify") && <KpiTile label="Contract deadlines" value={alerts.length} accent={SAP_CRITICAL} hint="Ends of contract & trial periods" />}
-        {balance && <KpiTile label="My leave balance" value={`${fmt.number(balance.available)} d`} accent={SAP_BLUE} hint={`${fmt.number(balance.acquired)} acquired · ${fmt.number(balance.taken)} taken`} />}
+        <KpiTile
+          label="Waiting for my approval"
+          value={approvals.length}
+          accent={PRIMARY}
+          icon={<CheckCircle2 className="h-5 w-5" />}
+          hint={<Link to="/approvals" className="text-indigo-600 font-medium hover:underline dark:text-indigo-400">Open inbox →</Link>}
+        />
+        {employees && (
+          <KpiTile
+            label={hr ? "Active employees" : "My team"}
+            value={activeEmployees}
+            accent={ACCENT}
+            icon={<Users className="h-5 w-5" />}
+            hint={`${employees.length} records in total`}
+          />
+        )}
+        {perms.can("contracts", "modify") && (
+          <KpiTile
+            label="Contract deadlines"
+            value={alerts.length}
+            accent={WARNING}
+            icon={<FileText className="h-5 w-5" />}
+            hint="Ends of contract & trial periods"
+          />
+        )}
+        {balance && (
+          <KpiTile
+            label="My leave balance"
+            value={`${fmt.number(balance.available)} d`}
+            accent={SUCCESS}
+            icon={<Calendar className="h-5 w-5" />}
+            hint={`${fmt.number(balance.acquired)} acquired · ${fmt.number(balance.taken)} taken`}
+          />
+        )}
         {payroll && currentPeriod && (
           <KpiTile
             label={`Payroll ${String(currentPeriod.month).padStart(2, "0")}/${currentPeriod.year}`}
             value={<StatusBadge value={currentPeriod.status} label={currentPeriod.status_label} />}
-            accent={TEAL}
+            accent={ACCENT}
+            icon={<Banknote className="h-5 w-5" />}
             hint={currentPeriod.totals?.net_payable ? `Net payable ${fmt.money(currentPeriod.totals.net_payable)}` : "Not calculated yet"}
           />
         )}
         {(perms.isManager || hr) && leaveRequests && (
-          <KpiTile label="Leave requests pending" value={leaveRequests.length} accent={PURPLE} />
+          <KpiTile
+            label="Leave requests pending"
+            value={leaveRequests.length}
+            accent={PRIMARY}
+            icon={<Calendar className="h-5 w-5" />}
+          />
         )}
       </div>
 

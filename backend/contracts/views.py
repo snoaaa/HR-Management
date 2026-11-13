@@ -15,6 +15,7 @@ from .models import AMENDABLE_TERMS, Contract
 from .serializers import (
     AmendmentRequestSerializer,
     ContractAmendmentSerializer,
+    ContractListSerializer,
     ContractRenewalSerializer,
     ContractSerializer,
     ContractSuspensionSerializer,
@@ -71,6 +72,11 @@ class ContractViewSet(viewsets.ModelViewSet):
         "employee__matriculation_number",
     )
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ContractListSerializer
+        return ContractSerializer
+
     def get_queryset(self):
         queryset = Contract.objects.select_related(
             "employee",
@@ -79,7 +85,11 @@ class ContractViewSet(viewsets.ModelViewSet):
             "workplace",
             "classification",
             "termination",
-        ).prefetch_related("amendments", "renewals", "suspensions")
+        )
+        if self.action != "list":
+            queryset = queryset.prefetch_related(
+                "amendments", "renewals", "suspensions"
+            )
         return scope_employees(self.request.user, queryset, "employee__")
 
     def perform_create(self, serializer):

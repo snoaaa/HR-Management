@@ -131,10 +131,11 @@ function Loans() {
       modalSize="md"
       columns={[
         { key: "employee_name", header: "Employee" },
-        { key: "kind", header: "Type", render: (l: any) => (l.kind === "SALARY_ADVANCE" ? "Salary Advance" : "Company Loan") },
-        { key: "principal", header: "Principal", align: "end", mono: true, render: (l: any) => fmt.money(l.principal) },
-        { key: "monthly_deduction", header: "Monthly installment", align: "end", mono: true, render: (l: any) => fmt.money(l.monthly_deduction) },
-        { key: "balance", header: "Remaining balance", align: "end", mono: true, render: (l: any) => <b className="text-primary-c">{fmt.money(l.balance ?? l.principal)}</b> },
+        { key: "kind", header: "Type", render: (l: any) => (l.kind === "ADVANCE" ? "Salary Advance" : "Company Loan") },
+        { key: "amount", header: "Total Amount", align: "end", mono: true, render: (l: any) => fmt.money(l.amount) },
+        { key: "installment", header: "Monthly Installment", align: "end", mono: true, render: (l: any) => fmt.money(l.installment) },
+        { key: "repaid", header: "Repaid", align: "end", mono: true, render: (l: any) => fmt.money(l.repaid || 0) },
+        { key: "remaining", header: "Remaining Balance", align: "end", mono: true, render: (l: any) => <b className="text-primary-c">{fmt.money(l.remaining ?? l.amount)}</b> },
         { key: "status", header: "Status", render: (l: any) => <StatusBadge value={l.status || "ACTIVE"} /> },
       ]}
       fields={[
@@ -145,14 +146,16 @@ function Loans() {
           type: "select",
           required: true,
           options: [
-            { value: "SALARY_ADVANCE", label: "Salary advance" },
+            { value: "ADVANCE", label: "Salary advance" },
             { value: "LOAN", label: "Company loan" },
           ],
         },
-        { name: "principal", label: "Total amount (FCFA)", type: "number", required: true },
-        { name: "monthly_deduction", label: "Monthly deduction amount (FCFA)", type: "number", required: true },
-        { name: "start_date", label: "Start date", type: "date", required: true },
-        { name: "reason", label: "Reason / Purpose" },
+        { name: "amount", label: "Total amount (FCFA)", type: "number", required: true },
+        { name: "installment", label: "Monthly installment (FCFA)", type: "number", required: true },
+        { name: "granted_on", label: "Granted date", type: "date", required: true },
+        { name: "first_year", label: "First repayment year (e.g. 2026)", type: "number", required: true },
+        { name: "first_month", label: "First repayment month (1 - 12)", type: "number", required: true },
+        { name: "comment", label: "Reason / Comment" },
       ]}
     />
   );

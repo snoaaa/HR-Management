@@ -23,6 +23,7 @@
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "libphonenumber-js": "^1.13.14",
+    "lucide-react": "^1.72.0",
     "maplibre-gl": "^6.8.0",
     "prismjs": "^1.30.0",
     "react": "^19.2.7",

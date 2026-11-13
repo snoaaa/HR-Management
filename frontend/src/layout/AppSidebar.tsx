@@ -43,19 +43,23 @@ const AppSidebar: React.FC = () => {
 
   const groups = perms.loading ? [] : NAVIGATION.map((g) => ({ ...g, items: g.items.filter(visible) })).filter((g) => g.items.length);
 
+  const userInitials = user
+    ? ((user.first_name?.[0] || "") + (user.last_name?.[0] || user.username?.[0] || "")).toUpperCase()
+    : "HR";
+
   return (
     <aside
       className={cn(
         "sidebar-shell fixed inset-s-0 top-0 z-50 flex h-screen flex-col px-4 text-white transition-all duration-300 ease-in-out xl:translate-x-0 xl:rtl:translate-x-0",
-        open ? "w-72.5" : "w-22.5",
+        open ? "w-72" : "w-20",
         isMobileOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full",
       )}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={cn("flex items-center py-6", open ? "justify-start ps-1" : "justify-center")}>
+      <div className={cn("flex items-center py-5", open ? "justify-start ps-1" : "justify-center")}>
         <Link to="/" aria-label="Home">
-          {open ? <Logo tone="inverse" size={42} /> : <LogoMark size={40} />}
+          {open ? <Logo tone="inverse" size={40} /> : <LogoMark size={36} />}
         </Link>
       </div>
 
@@ -63,32 +67,66 @@ const AppSidebar: React.FC = () => {
         <div className="flex flex-col gap-5">
           {groups.map((group) => (
             <div key={group.label}>
-              <h2 className={cn("sidebar-group mb-2", open ? "ps-3" : "text-center")}>{open ? group.label : "•••"}</h2>
+              <h2 className={cn("sidebar-group mb-1.5", open ? "ps-3" : "text-center")}>
+                {open ? group.label : "•••"}
+              </h2>
               <ul className="flex flex-col gap-0.5">
-                {group.items.map((item) => (
-                  <li key={item.path}>
-                    <Link
-                      to={item.path}
-                      title={item.name}
-                      className={cn("sidebar-link", item.path === activePath && "sidebar-link-active", !open && "justify-center")}
-                    >
-                      <span className={cn("shrink-0", item.path === activePath ? "text-teal-200" : "text-white/60")}>{item.icon}</span>
-                      {open && <span className="truncate">{item.name}</span>}
-                    </Link>
-                  </li>
-                ))}
+                {group.items.map((item) => {
+                  const isCurrent = item.path === activePath;
+                  return (
+                    <li key={item.path}>
+                      <Link
+                        to={item.path}
+                        title={item.name}
+                        className={cn(
+                          "sidebar-link group",
+                          isCurrent && "sidebar-link-active",
+                          !open && "justify-center px-0",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "transition-colors",
+                            isCurrent ? "text-indigo-400" : "text-slate-400 group-hover:text-slate-200",
+                          )}
+                        >
+                          {item.icon}
+                        </span>
+                        {open && <span className="truncate text-xs font-medium">{item.name}</span>}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
         </div>
       </nav>
 
-      {open && user && (
-        <div className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3">
-          <p className="truncate text-xs font-semibold text-white">
-            {user.first_name || user.last_name ? `${user.first_name} ${user.last_name}` : user.username}
-          </p>
-          <p className="truncate text-[11px] text-teal-200">{perms.role.replace(/_/g, " ").toLowerCase()}</p>
+      {user && (
+        <div className={cn("mb-4 border-t border-white/10 pt-3", open ? "px-1" : "flex justify-center")}>
+          {open ? (
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-2.5 backdrop-blur-xs">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white shadow-xs">
+                {userInitials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-white">
+                  {user.first_name || user.last_name ? `${user.first_name} ${user.last_name}` : user.username}
+                </p>
+                <p className="truncate text-[11px] font-medium text-indigo-300">
+                  {perms.role.replace(/_/g, " ").toLowerCase()}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-xs font-bold text-white shadow-xs"
+              title={`${user.username} (${perms.role})`}
+            >
+              {userInitials}
+            </div>
+          )}
         </div>
       )}
     </aside>

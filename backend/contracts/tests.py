@@ -194,7 +194,10 @@ class ContractTests(TestCase):
         run_alerts()
         run_alerts()
         self.assertEqual(
-            Notification.objects.filter(user=self.hr, category="ALERT").count(), 2
+            Notification.objects.filter(
+                user=self.hr, category="ALERT", link__startswith="/contracts/"
+            ).count(),
+            2,
         )
 
     def test_salary_visibility(self):

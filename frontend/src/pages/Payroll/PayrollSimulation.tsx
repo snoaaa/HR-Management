@@ -35,7 +35,7 @@ export default function PayrollSimulation() {
         payload.base_salary = baseSalary;
       }
 
-      const res = await api.post("payroll/simulation/", payload);
+      const res = await api.post("payroll/simulate/", payload);
       setResult(res.data);
     } catch (err) {
       toast.error(apiError(err));

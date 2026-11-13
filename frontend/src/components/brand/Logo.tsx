@@ -20,9 +20,9 @@ export function LogoMark({ size = 40, className = "" }: { size?: number; classNa
     >
       <defs>
         <linearGradient id={`bg-${id}`} x1="8" y1="4" x2="58" y2="62" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#8a5a7e" />
-          <stop offset="0.45" stopColor="#714B67" />
-          <stop offset="1" stopColor="#00A09D" />
+          <stop offset="0" stopColor="#6366F1" />
+          <stop offset="0.5" stopColor="#4F46E5" />
+          <stop offset="1" stopColor="#0EA5E9" />
         </linearGradient>
         <linearGradient id={`rim-${id}`} x1="32" y1="2" x2="32" y2="62" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.55" />
@@ -33,19 +33,19 @@ export function LogoMark({ size = 40, className = "" }: { size?: number; classNa
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`swoosh-${id}`} x1="10" y1="50" x2="56" y2="30" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#00D4CF" stopOpacity="0.15" />
-          <stop offset="0.6" stopColor="#00D4CF" />
-          <stop offset="1" stopColor="#7ff5f1" />
+          <stop offset="0" stopColor="#38BDF8" stopOpacity="0.2" />
+          <stop offset="0.6" stopColor="#38BDF8" />
+          <stop offset="1" stopColor="#BAE6FD" />
         </linearGradient>
         <radialGradient id={`glow-${id}`} cx="32" cy="30" r="22" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.22" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </radialGradient>
         <filter id={`shadow-${id}`} x="-20%" y="-20%" width="140%" height="150%">
-          <feDropShadow dx="0" dy="2.2" stdDeviation="2" floodColor="#2d1f29" floodOpacity="0.35" />
+          <feDropShadow dx="0" dy="2.2" stdDeviation="2" floodColor="#0f172a" floodOpacity="0.35" />
         </filter>
         <filter id={`soft-${id}`} x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="1" stdDeviation="0.8" floodColor="#2d1f29" floodOpacity="0.35" />
+          <feDropShadow dx="0" dy="1" stdDeviation="0.8" floodColor="#0f172a" floodOpacity="0.35" />
         </filter>
       </defs>
 
@@ -104,15 +104,15 @@ interface LogoProps {
 export default function Logo({ variant = "full", tone = "auto", size = 40, className = "", subtitle = true }: LogoProps) {
   if (variant === "mark") return <LogoMark size={size} className={className} />;
   const onDark = tone === "inverse" || tone === "dark";
-  const title = onDark ? "text-white" : tone === "light" ? "text-gray-900" : "text-gray-900 dark:text-white";
-  const sub = onDark ? "text-teal-200" : tone === "light" ? "text-teal-500" : "text-teal-500 dark:text-teal-300";
+  const title = onDark ? "text-white" : tone === "light" ? "text-slate-900" : "text-slate-900 dark:text-white";
+  const sub = onDark ? "text-indigo-200" : tone === "light" ? "text-indigo-600" : "text-indigo-600 dark:text-indigo-400";
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <LogoMark size={size} />
       <span className="flex flex-col leading-none">
         <span className={`text-[10px] font-semibold uppercase tracking-[0.22em] ${sub}`}>Saint Jean</span>
         <span className={`text-[20px] font-extrabold tracking-tight ${title}`}>
-          HR<span className="bg-linear-to-r from-brand-300 to-teal-300 bg-clip-text text-transparent">MS</span>
+          HR<span className="bg-gradient-to-r from-indigo-500 via-indigo-400 to-sky-400 bg-clip-text text-transparent">MS</span>
         </span>
         {subtitle && (
           <span className={`mt-0.5 text-[9px] font-medium tracking-wide opacity-70 ${title}`}>Human Resources Suite</span>

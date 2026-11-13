@@ -29,11 +29,11 @@ function GenerateCertificate() {
     setGenerating(true);
     try {
       await downloadFile(`documents/certificates/${certCode}/?employee=${employeeId}`, {
-        method: "post",
+        method: "get",
         filename: `${certCode.toLowerCase()}_${employeeId}.pdf`,
         open: true,
       });
-      toast.success("Certificate generated and downloaded");
+      toast.success("Certificate generated and opened");
     } catch (err) {
       toast.error(apiError(err));
     } finally {
