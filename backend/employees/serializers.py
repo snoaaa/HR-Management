@@ -64,34 +64,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
         read_only_fields = ["matriculation_number"]
 
 
-class EmployeeListSerializer(serializers.ModelSerializer):
-    """
-    Lightweight directory serializer without nested relations (family_members,
-    documents, education_experience), massively improving list responsiveness.
-    """
-
-    department_name = serializers.CharField(source="department.name", read_only=True)
-    position_title = serializers.CharField(source="position.title", read_only=True)
-    workplace_name = serializers.CharField(source="workplace.name", read_only=True)
-    classification_label = serializers.CharField(
-        source="classification.__str__", read_only=True
-    )
-    full_name = serializers.CharField(read_only=True)
-    seniority_years = serializers.FloatField(read_only=True)
-    age = serializers.IntegerField(read_only=True)
-    number_of_children = serializers.IntegerField(read_only=True)
-    region_label = serializers.CharField(source="get_region_display", read_only=True)
-    title_label = serializers.CharField(source="get_title_display", read_only=True)
-    education_level_label = serializers.CharField(
-        source="get_education_level_display", read_only=True
-    )
-
-    class Meta:
-        model = Employee
-        fields = "__all__"
-        read_only_fields = ["matriculation_number"]
-
-
 class EmployeeSummarySerializer(serializers.ModelSerializer):
     """Light representation used by the other modules (contracts, leave...)."""
 

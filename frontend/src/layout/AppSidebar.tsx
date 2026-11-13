@@ -59,10 +59,6 @@ const AppSidebar: React.FC = () => {
     .map((w) => w.charAt(0))
     .join("");
 
-  const userInitials = user
-    ? ((user.first_name?.[0] || "") + (user.last_name?.[0] || user.username?.[0] || "")).toUpperCase()
-    : "HR";
-
   return (
     <aside
       className={cn(

@@ -36,7 +36,7 @@ DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get("ALLOWED_HOSTS", "").split(",")
+    for host in os.environ.get("ALLOWED_HOSTS", "*").split(",")
     if host.strip()
 ]
 
@@ -141,28 +141,7 @@ WSGI_APPLICATION = "hrms_backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if "test" in sys.argv:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": ":memory:",
-        }
-    }
-else:
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=os.environ.get("DATABASE_URL"),
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
-
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "hrms-cache",
-    }
-}
+DATABASES = {"default": dj_database_url.config(default=os.environ.get("DATABASE_URL"))}
 
 
 # Password validation
@@ -222,7 +201,7 @@ if "test" in sys.argv:
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# CORS & CSRF — allow Vite dev server, production domains, or wildcard if configured
+# CORS — allow the Vite dev server and production domains
 _cors_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
 if _cors_env.strip() == "*":
     CORS_ALLOW_ALL_ORIGINS = True
@@ -234,12 +213,6 @@ else:
         if origin.strip()
     ]
 CORS_ALLOW_CREDENTIALS = True
-
-CSRF_TRUSTED_ORIGINS = [
-    origin.strip()
-    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
-    if origin.strip()
-]
 
 # Custom user model
 AUTH_USER_MODEL = "users.User"

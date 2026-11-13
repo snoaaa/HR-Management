@@ -72,40 +72,6 @@ class ContractTerminationSerializer(serializers.ModelSerializer):
         read_only_fields = ("contract", "created_by", "final_settlement")
 
 
-class ContractListSerializer(SalaryMaskMixin, serializers.ModelSerializer):
-    """
-    Lightweight serializer for contract list directory without
-    nested child relations.
-    """
-
-    employee_name = serializers.CharField(source="employee.full_name", read_only=True)
-    employee_matriculation = serializers.CharField(
-        source="employee.matriculation_number", read_only=True
-    )
-    contract_type_label = serializers.CharField(
-        source="get_contract_type_display", read_only=True
-    )
-    position_title = serializers.CharField(source="position.title", read_only=True)
-    department_name = serializers.CharField(source="department.name", read_only=True)
-    workplace_name = serializers.CharField(source="workplace.name", read_only=True)
-    classification_label = serializers.CharField(
-        source="classification.__str__", read_only=True
-    )
-    effective_end_date = serializers.DateField(read_only=True)
-    in_force_today = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Contract
-        fields = "__all__"
-
-    def get_in_force_today(self, contract):
-        return contract.is_in_force(timezone.now().date())
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        return self.mask(data, instance.employee)
-
-
 class ContractSerializer(SalaryMaskMixin, serializers.ModelSerializer):
     employee_name = serializers.CharField(source="employee.full_name", read_only=True)
     employee_matriculation = serializers.CharField(

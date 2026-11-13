@@ -1,6 +1,6 @@
 [flake8]
 max-line-length = 120
-exclude = .git,__pycache__,migrations,venv,.venv
+exclude = .git,__pycache__,migrations,venv
 extend-ignore = E402,F841,E203
 # HTML of the printable documents.
 per-file-ignores = documents/default_templates.py:E501

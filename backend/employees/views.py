@@ -25,7 +25,6 @@ from .serializers import (
     EducationAndExperienceSerializer,
     EmployeeDocumentSerializer,
     EmployeeHistorySerializer,
-    EmployeeListSerializer,
     EmployeeSerializer,
     FamilyMemberSerializer,
 )
@@ -92,20 +91,11 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     ]
     ordering_fields = ["surname", "date_of_hire", "matriculation_number"]
 
-    def get_serializer_class(self):
-        if self.action == "list":
-            return EmployeeListSerializer
-        return EmployeeSerializer
-
     def get_queryset(self):
         # BN-171 / BN-154: each user only sees the records of their perimeter.
         queryset = Employee.objects.select_related(
             "department", "position", "classification", "workplace"
         ).order_by("-id")
-        if self.action == "retrieve":
-            queryset = queryset.prefetch_related(
-                "family_members", "documents", "education_experience", "history"
-            )
         return scope_employees(self.request.user, queryset)
 
     def perform_create(self, serializer):

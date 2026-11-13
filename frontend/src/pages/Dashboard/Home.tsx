@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
-import { CheckCircle2, Users, FileText, Calendar, Banknote } from "lucide-react";
 import api from "@/api/axiosConfig";
 import { asList, fmt } from "@/api/helpers";
 import ClockWidget from "@/components/dashboard/ClockWidget";

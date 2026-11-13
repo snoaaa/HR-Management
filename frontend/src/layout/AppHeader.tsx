@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Menu, X, Search, Command } from "lucide-react";
 import { LogoMark } from "@/components/brand/Logo";
 import CommandPalette from "@/components/header/CommandPalette";
 import HelpPanel from "@/components/header/HelpPanel";
 import NotificationBell from "@/components/header/NotificationBell";
 import QuickCreate from "@/components/header/QuickCreate";
 import UserDropdown from "@/components/header/UserDropdown";
-import CommandPalette from "@/components/common/CommandPalette";
 import { useSidebar } from "@/context/SidebarContext";
 import { useTheme } from "@/context/ThemeContext";
 import { CloseIcon, MenuIcon, MoonIcon, SearchIcon, SunIcon } from "@/icons";

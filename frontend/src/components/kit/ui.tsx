@@ -39,13 +39,7 @@ export function PageHeader({
   );
 }
 
-export function Card({
-  title,
-  actions,
-  children,
-  className,
-  padded = true,
-}: {
+export function Card({ title, actions, children, className, padded = true }: {
   title?: ReactNode;
   actions?: ReactNode;
   children: ReactNode;
@@ -65,32 +59,14 @@ export function Card({
   );
 }
 
-export function Tabs({
-  tabs,
-  active,
-  onChange,
-}: {
-  tabs: { id: string; label: ReactNode; hidden?: boolean; badge?: number | string }[];
-  active: string;
-  onChange: (id: string) => void;
-}) {
+export function Tabs({ tabs, active, onChange }: { tabs: { id: string; label: ReactNode; hidden?: boolean }[]; active: string; onChange: (id: string) => void }) {
   return (
     <div className="tab-bar no-scrollbar mb-5">
       {tabs
         .filter((t) => !t.hidden)
         .map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => onChange(t.id)}
-            className={cn("tab-item inline-flex items-center gap-2", active === t.id && "tab-item-active")}
-          >
-            <span>{t.label}</span>
-            {t.badge !== undefined && (
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                {t.badge}
-              </span>
-            )}
+          <button key={t.id} type="button" onClick={() => onChange(t.id)} className={cn("tab-item", active === t.id && "tab-item-active")}>
+            {t.label}
           </button>
         ))}
     </div>
@@ -118,10 +94,8 @@ export function Modal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
-
   if (!open) return null;
   const width = { sm: "max-w-md", md: "max-w-xl", lg: "max-w-3xl", xl: "max-w-5xl" }[size];
-
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className={cn("modal-box", width)}>
@@ -155,18 +129,7 @@ const TONES: Record<string, string> = {
   dark: "badge-dark",
 };
 
-const DOT_TONES: Record<string, string> = {
-  green: "bg-emerald-500",
-  red: "bg-red-500",
-  yellow: "bg-amber-500",
-  orange: "bg-orange-500",
-  blue: "bg-blue-500",
-  gray: "bg-slate-400",
-  purple: "bg-indigo-500",
-  teal: "bg-teal-500",
-};
-
-/** Colour mapping of the usual statuses of the application. */
+/** Colour of the usual statuses of the application. */
 const STATUS_TONE: Record<string, string> = {
   ACTIVE: "green",
   APPROVED: "green",
@@ -212,32 +175,11 @@ const STATUS_TONE: Record<string, string> = {
   NONE: "gray",
 };
 
-export function Badge({
-  children,
-  tone = "gray",
-  dot = false,
-}: {
-  children: ReactNode;
-  tone?: string;
-  dot?: boolean;
-}) {
-  return (
-    <span className={TONES[tone] || "badge-gray"}>
-      {dot && <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", DOT_TONES[tone] || "bg-slate-400")} />}
-      {children}
-    </span>
-  );
+export function Badge({ children, tone = "gray" }: { children: ReactNode; tone?: string }) {
+  return <span className={TONES[tone] || "badge-gray"}>{children}</span>;
 }
 
-export function StatusBadge({
-  value,
-  label,
-  dot = true,
-}: {
-  value?: string | null;
-  label?: string | null;
-  dot?: boolean;
-}) {
+export function StatusBadge({ value, label }: { value?: string | null; label?: string | null }) {
   if (!value) return <span className="text-muted-c">—</span>;
   const text = label || value.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
   return <span className={`${TONES[STATUS_TONE[value] || "gray"]} badge-dot`}>{text}</span>;
@@ -315,7 +257,7 @@ export function Field({ label, children, hint, required, className }: {
     <label className={cn("block", className)}>
       <span className="field-label">
         {label}
-        {required && <span className="text-red-500"> *</span>}
+        {required && <span className="text-error-500"> *</span>}
       </span>
       {children}
       {hint && <span className="mt-1 block text-xs text-muted-c">{hint}</span>}
@@ -323,19 +265,13 @@ export function Field({ label, children, hint, required, className }: {
   );
 }
 
-export function Banner({
-  tone = "info",
-  children,
-}: {
-  tone?: "info" | "error" | "success" | "warning";
-  children: ReactNode;
-}) {
+export function Banner({ tone = "info", children }: { tone?: "info" | "error" | "success" | "warning"; children: ReactNode }) {
   return <div className={`${tone}-banner`}>{children}</div>;
 }
 
 export function DefinitionList({ items }: { items: [ReactNode, ReactNode][] }) {
   return (
-    <dl className="grid grid-cols-1 gap-x-6 gap-y-3.5 sm:grid-cols-2">
+    <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
       {items.map(([k, v], i) => (
         <div key={i} className="flex flex-col">
           <dt className="text-xs font-medium text-muted-c">{k}</dt>

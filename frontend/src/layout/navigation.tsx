@@ -56,7 +56,7 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-const ICON = "size-4.5 shrink-0";
+const ICON = "size-5";
 const ADMIN_ROLES = ["SYSTEM_ADMINISTRATOR", "HR_MANAGER"];
 
 export const NAVIGATION: NavGroup[] = [
@@ -74,22 +74,8 @@ export const NAVIGATION: NavGroup[] = [
       {
         name: "Employees",
         path: "/employees",
-        icon: <Users className={ICON} />,
-        when: ({ can, role, isManager }) =>
-          can("employees", "modify") || isManager || ["GENERAL_MANAGEMENT", "PAYROLL_OFFICER", "SYSTEM_ADMINISTRATOR"].includes(role),
-      },
-      {
-        name: "Contracts",
-        path: "/contracts",
-        icon: <FileText className={ICON} />,
-        when: ({ can }) => can("contracts", "modify") || can("contracts", "validate"),
-      },
-      {
-        name: "Organisation",
-        path: "/organisation",
-        icon: <Building2 className={ICON} />,
-        module: "organisation",
-        action: "modify",
+        icon: <GroupIcon className={ICON} />,
+        when: ({ can, role, isManager }) => can("employees", "modify") || isManager || ["GENERAL_MANAGEMENT", "PAYROLL_OFFICER", "SYSTEM_ADMINISTRATOR"].includes(role),
       },
       { name: "Contracts", path: "/contracts", icon: <FileIcon className={ICON} />, when: ({ can }) => can("contracts", "modify") || can("contracts", "validate") },
       { name: "Careers", path: "/careers-management", keywords: "promotion transfer career history org chart", icon: <ShootingStarIcon className={ICON} />, when: ({ can, isManager }) => can("careers", "modify") || can("careers", "validate") || isManager },
@@ -98,24 +84,24 @@ export const NAVIGATION: NavGroup[] = [
     ],
   },
   {
-    label: "Time & Absence",
+    label: "Time & absence",
     items: [
       {
         name: "Attendance",
         path: "/attendance",
-        icon: <Clock className={ICON} />,
+        icon: <TimeIcon className={ICON} />,
         when: ({ can, isManager }) => can("attendance", "modify") || can("attendance", "validate") || isManager,
       },
       {
         name: "Leave",
         path: "/leave",
-        icon: <Calendar className={ICON} />,
+        icon: <CalenderIcon className={ICON} />,
         when: ({ can, isManager }) => can("leave", "modify") || isManager,
       },
       {
         name: "Planning",
         path: "/planning",
-        icon: <CalendarDays className={ICON} />,
+        icon: <TaskIcon className={ICON} />,
         when: ({ can, isManager }) => can("planning", "modify") || isManager,
       },
     ],
@@ -146,12 +132,7 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: "Documents",
     items: [
-      {
-        name: "Documents",
-        path: "/documents",
-        icon: <FolderArchive className={ICON} />,
-        when: ({ can }) => can("documents", "create"),
-      },
+      { name: "Documents", path: "/documents", icon: <DocsIcon className={ICON} />, when: ({ can }) => can("documents", "create") },
     ],
   },
   {
@@ -165,7 +146,7 @@ export const NAVIGATION: NavGroup[] = [
     ],
   },
   {
-    label: "My Space",
+    label: "My space",
     items: [
       { name: "My profile", path: "/profile", icon: <UserCircleIcon className={ICON} /> },
       { name: "My leave", path: "/my/leave", keywords: "holiday vacation absence request days off", icon: <CalenderIcon className={ICON} />, needsEmployee: true },

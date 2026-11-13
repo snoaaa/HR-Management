@@ -10,7 +10,6 @@
    - accent red   : brand moments only (logo, sign-in panel)
    - green / amber / red / blue : status only (never decoration)
    ======================================================================== */
-
 :root {
   --brand: #fa5a05;
   --brand-strong: #d24704; /* text and filled buttons: 4.6:1 on white */
@@ -22,22 +21,6 @@
   --ink: #101926;
   --ink-2: #1a2535;
 
-  --accent: #0ea5e9;
-  --accent-hover: #0284c7;
-  --accent-light: #f0f9ff;
-  --accent-bright: #38bdf8;
-
-  /* Backward compatibility aliases */
-  --odoo-purple: var(--primary);
-  --odoo-purple-dark: var(--primary-hover);
-  --odoo-purple-light: var(--primary-light);
-  --odoo-purple-mid: var(--primary-mid);
-  --odoo-teal: var(--accent);
-  --odoo-teal-dark: var(--accent-hover);
-  --odoo-teal-light: var(--accent-light);
-  --odoo-teal-bright: var(--accent-bright);
-
-  /* ── Neutral Surfaces (Crisp Slate) ── */
   --surface: #ffffff;
   --surface-2: #f9fafb;
   --surface-3: #f2f4f7;
@@ -104,7 +87,6 @@
   font-feature-settings: "tnum";
 }
 
-/* ── Modern Sleek Scrollbars ── */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -118,31 +100,18 @@
   border: 2px solid transparent;
   background-clip: padding-box;
 }
-.dark ::-webkit-scrollbar-thumb {
-  background: #334155;
-}
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
   background-clip: padding-box;
 }
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
-}
-
 ::selection {
   background: rgba(250, 90, 5, 0.22);
 }
-.dark ::selection {
-  background: rgba(99, 102, 241, 0.4);
-  color: #e0e7ff;
-}
-
 :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
-/* ── Fluid Animations ── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -152,11 +121,11 @@
   to { opacity: 1; }
 }
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(12px); }
+  from { opacity: 0; transform: translateX(16px); }
   to { opacity: 1; transform: translateX(0); }
 }
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.98); }
+  from { opacity: 0; transform: scale(0.97); }
   to { opacity: 1; transform: scale(1); }
 }
 @keyframes shimmer {
@@ -288,10 +257,7 @@
     background: transparent;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
-  .btn-icon:hover {
-    background: var(--surface-3);
-    color: var(--text-primary);
-  }
+  .btn-icon:hover { background: var(--surface-3); color: var(--text-primary); }
 
   /* Round button of the top bar (theme, notifications, help). */
   .topbar-btn {
@@ -394,8 +360,6 @@
     font-weight: 600;
     line-height: 1.1rem;
     white-space: nowrap;
-    border-width: 1px;
-    border-style: solid;
   }
   .badge-green { background: #e7f6ef; color: #0c6548; }
   .badge-red { background: #fdecea; color: #b42318; }
@@ -443,7 +407,6 @@
     font-size: 0.875rem;
     color: var(--text-secondary);
     border-bottom: 1px solid var(--row-divider);
-    vertical-align: middle;
   }
   tbody tr:last-child > .table-cell { border-bottom: 0; }
   .table-row:hover { background: var(--surface-2); }
@@ -477,7 +440,7 @@
     top: 0;
     z-index: 1;
     background: var(--surface);
-    padding: 1.125rem 1.5rem;
+    padding: 1rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -705,13 +668,13 @@
   .auth-panel-muted { color: #4b5565; }
   .dark .auth-panel-muted { color: rgba(255, 255, 255, 0.65); }
 
-  /* ── Status Stepper ── */
-  .stepper { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  /* ── Status stepper ── */
+  .stepper { display: flex; flex-wrap: wrap; gap: 0.25rem; }
   .step {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    padding: 0.35rem 0.75rem;
+    padding: 0.35rem 0.7rem;
     border-radius: 9999px;
     font-size: 0.7rem;
     font-weight: 600;
