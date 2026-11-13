@@ -9,10 +9,16 @@ from django.urls import include, path, re_path
 from django.views.static import serve
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework_simplejwt.views import TokenRefreshView
+from api.views import CustomTokenObtainPairView, TwoFactorVerifyView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("api.urls")),
+    # Fallback direct auth endpoints (in case any client calls without /api/ prefix)
+    path("auth/login/", CustomTokenObtainPairView.as_view()),
+    path("auth/refresh/", TokenRefreshView.as_view()),
+    path("auth/2fa/verify/", TwoFactorVerifyView.as_view()),
     path("api/organisation/", include("organisation.urls")),
     path("api/employees/", include("employees.urls")),
     path("api/notifications/", include("notifications.urls")),
@@ -63,10 +69,10 @@ def spa_redirect(request, path=""):
 if settings.SERVE_FRONTEND:
     # Everything that is not the API, the admin or a file goes to the local SPA build.
     urlpatterns += [
-        re_path(r"^(?!api(?:/|$)|admin(?:/|$)|media(?:/|$)|static(?:/|$)|assets(?:/|$)).*$", frontend),
+        re_path(r"^(?!api(?:/|$)|auth(?:/|$)|admin(?:/|$)|media(?:/|$)|static(?:/|$)|assets(?:/|$)).*$", frontend),
     ]
 else:
     # Standalone backend on Render: redirect root and web routes to the frontend app.
     urlpatterns += [
-        re_path(r"^(?!api(?:/|$)|admin(?:/|$)|media(?:/|$)|static(?:/|$)|assets(?:/|$))(?P<path>.*)$", spa_redirect),
+        re_path(r"^(?!api(?:/|$)|auth(?:/|$)|admin(?:/|$)|media(?:/|$)|static(?:/|$)|assets(?:/|$))(?P<path>.*)$", spa_redirect),
     ]

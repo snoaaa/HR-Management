@@ -40,7 +40,4 @@ services:
         destination: "/index.html"
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: hrms-backend
-          envVarKey: RENDER_EXTERNAL_URL
+        value: "https://hrms-backend-xnbi.onrender.com/api/"

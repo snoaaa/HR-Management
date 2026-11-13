@@ -47,6 +47,14 @@ CSRF_TRUSTED_ORIGINS = [
     for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = [
+        "https://*.onrender.com",
+        "https://hrms-frontend-0yx3.onrender.com",
+        "https://hrms-backend-xnbi.onrender.com",
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ]
 if os.environ.get("BEHIND_HTTPS_PROXY", "False").lower() == "true":
     # Trust the proxy to say that the visitor used HTTPS, so generated links
     # (uploaded files, documents) start with https:// and cookies are secure.
