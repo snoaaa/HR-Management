@@ -38,3 +38,6 @@ Thumbs.db
 .idea/
 *.suo
 *.user
+
+# Data backups (BN-183)
+backend/backups/

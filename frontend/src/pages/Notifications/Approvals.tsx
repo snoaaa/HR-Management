@@ -60,7 +60,7 @@ export default function Approvals() {
         ]}
       />
       <Card padded={false}>
-        <DataTable<Task>
+        <DataTable<Task> exportTitle="Approvals"
           rows={rows}
           loading={loading}
           empty={tab === "pending" ? "Nothing is waiting for your decision." : "You have not decided anything yet."}
@@ -72,7 +72,7 @@ export default function Approvals() {
                 <div>
                   <p className="font-medium text-primary-c">{t.summary}</p>
                   {t.link && (
-                    <Link to={t.link} className="text-xs text-brand-500 hover:underline dark:text-brand-300">
+                    <Link to={t.link} className="text-xs text-brand-600 hover:underline dark:text-brand-400">
                       Open the request
                     </Link>
                   )}

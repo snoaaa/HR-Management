@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { confirmDialog } from "@/components/kit/confirm";
 import api from "@/api/axiosConfig";
 import {
   Table,
@@ -61,7 +62,7 @@ export default function DepartmentsTable() {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this unit? All child units must be re-assigned or deleted first.")) {
+    if (await confirmDialog({ title: "Delete this unit?", message: "All child units must be re-assigned or deleted first.", confirmLabel: "Delete", danger: true })) {
       try {
         await api.delete(`organisation/departments/${id}/`);
         toast.success("Organisational Unit deleted successfully");
@@ -140,7 +141,7 @@ export default function DepartmentsTable() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openEditModal(dept)}
-                          className="text-brand-500 hover:text-brand-600"
+                          className="text-brand-600 hover:text-brand-600"
                         >
                           Edit
                         </button>

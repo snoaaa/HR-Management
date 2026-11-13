@@ -1,95 +1,151 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
+import api from "@/api/axiosConfig";
+import { asList } from "@/api/helpers";
 import Logo, { LogoMark } from "@/components/brand/Logo";
 import { useAuth } from "@/context/AuthContext";
 import { usePermissions } from "@/context/PermissionsContext";
 import { useSidebar } from "@/context/SidebarContext";
+import { ChevronDownIcon } from "@/icons";
 import { cn } from "../utils";
-import { NAVIGATION } from "./navigation";
-import type { NavItem } from "./navigation";
+import { roleLabel } from "./roles";
+import { useNavigation } from "./useNavigation";
+
+const COLLAPSED_KEY = "hrms.sidebar.collapsed-groups";
+
+function readCollapsed(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered, setIsMobileOpen } = useSidebar();
   const location = useLocation();
   const { user } = useAuth();
   const perms = usePermissions();
+  const { groups, activeItem, activeGroup } = useNavigation();
   const open = isExpanded || isHovered || isMobileOpen;
+  const [collapsed, setCollapsed] = useState<string[]>(readCollapsed);
+  const [pending, setPending] = useState(0);
 
   useEffect(() => {
     if (isMobileOpen) setIsMobileOpen(false);
   }, [location.pathname]);
 
-  const visible = (item: NavItem) => {
-    if (item.roles && !item.roles.includes(perms.role)) return false;
-    if (item.module && !perms.can(item.module, item.action)) return false;
-    if (item.needsEmployee && !perms.employee_id) return false;
-    if (item.when)
-      return item.when({
-        can: perms.can,
-        role: perms.role,
-        isManager: perms.isManager,
-        employeeId: perms.employee_id,
-        canViewSalary: perms.can_view_salary,
-      });
-    return true;
+  // Number of requests waiting for a decision, shown next to "Approvals".
+  useEffect(() => {
+    if (!user) return;
+    api
+      .get("notifications/approvals/")
+      .then((res) => setPending(asList(res.data).length))
+      .catch(() => setPending(0));
+  }, [user, location.pathname]);
+
+  const toggleGroup = (label: string) => {
+    setCollapsed((prev) => {
+      const next = prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label];
+      localStorage.setItem(COLLAPSED_KEY, JSON.stringify(next));
+      return next;
+    });
   };
 
-  const isActive = (path: string) =>
-    path === "/" ? location.pathname === "/" : location.pathname === path || location.pathname.startsWith(`${path}/`);
-
-  // The most specific matching path wins (e.g. /payroll/payslips over /payroll).
-  const allPaths = NAVIGATION.flatMap((g) => g.items.map((i) => i.path));
-  const activePath = allPaths.filter(isActive).sort((a, b) => b.length - a.length)[0];
-
-  const groups = perms.loading ? [] : NAVIGATION.map((g) => ({ ...g, items: g.items.filter(visible) })).filter((g) => g.items.length);
+  const fullName = user ? (user.first_name || user.last_name ? `${user.first_name} ${user.last_name}`.trim() : user.username) : "";
+  const initials = fullName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w.charAt(0))
+    .join("");
 
   return (
     <aside
       className={cn(
-        "sidebar-shell fixed inset-s-0 top-0 z-50 flex h-screen flex-col px-4 text-white transition-all duration-300 ease-in-out xl:translate-x-0 xl:rtl:translate-x-0",
+        "sidebar-shell fixed inset-s-0 top-0 z-50 flex h-screen flex-col transition-all duration-300 ease-in-out xl:translate-x-0 xl:rtl:translate-x-0",
         open ? "w-72.5" : "w-22.5",
         isMobileOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full",
       )}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      aria-label="Main menu"
     >
-      <div className={cn("flex items-center py-6", open ? "justify-start ps-1" : "justify-center")}>
-        <Link to="/" aria-label="Home">
-          {open ? <Logo tone="inverse" size={42} /> : <LogoMark size={40} />}
+      <div className={cn("flex h-[68px] shrink-0 items-center border-b", open ? "px-5" : "justify-center")} style={{ borderColor: "var(--border-color)" }}>
+        <Link to="/" aria-label="Back to the dashboard">
+          {open ? <Logo size={40} /> : <LogoMark size={40} />}
         </Link>
       </div>
 
-      <nav className="no-scrollbar flex-1 overflow-y-auto pb-6">
-        <div className="flex flex-col gap-5">
-          {groups.map((group) => (
-            <div key={group.label}>
-              <h2 className={cn("sidebar-group mb-2", open ? "ps-3" : "text-center")}>{open ? group.label : "•••"}</h2>
-              <ul className="flex flex-col gap-0.5">
-                {group.items.map((item) => (
-                  <li key={item.path}>
-                    <Link
-                      to={item.path}
-                      title={item.name}
-                      className={cn("sidebar-link", item.path === activePath && "sidebar-link-active", !open && "justify-center")}
+      <nav className="no-scrollbar flex-1 overflow-y-auto px-3 py-4">
+        <div className="flex flex-col gap-4">
+          {groups.map((group, index) => {
+            const isCollapsed = open && collapsed.includes(group.label) && group !== activeGroup;
+            return (
+              <div key={group.label}>
+                {open ? (
+                  index === 0 ? null : (
+                    <button
+                      type="button"
+                      onClick={() => toggleGroup(group.label)}
+                      className="sidebar-group mb-1.5 flex w-full items-center justify-between rounded-md px-3 py-1 hover:text-(--text-primary)"
+                      aria-expanded={!isCollapsed}
                     >
-                      <span className={cn("shrink-0", item.path === activePath ? "text-teal-200" : "text-white/60")}>{item.icon}</span>
-                      {open && <span className="truncate">{item.name}</span>}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+                      {group.label}
+                      <ChevronDownIcon className={cn("size-3.5 transition-transform", isCollapsed && "-rotate-90")} />
+                    </button>
+                  )
+                ) : (
+                  index > 0 && <div className="mx-auto mb-3 h-px w-8" style={{ background: "var(--border-color)" }} />
+                )}
+                {!isCollapsed && (
+                  <ul className="flex flex-col gap-0.5">
+                    {group.items.map((item) => {
+                      const active = item === activeItem;
+                      const count = item.path === "/approvals" ? pending : 0;
+                      return (
+                        <li key={item.path}>
+                          <Link
+                            to={item.path}
+                            title={open ? undefined : item.name}
+                            aria-current={active ? "page" : undefined}
+                            className={cn("sidebar-link", active && "sidebar-link-active", !open && "justify-center px-0")}
+                          >
+                            <span className="relative shrink-0">
+                              {item.icon}
+                              {!open && count > 0 && <span className="absolute -end-1 -top-1 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-(--surface)" />}
+                            </span>
+                            {open && <span className="truncate">{item.name}</span>}
+                            {open && count > 0 && <span className="sidebar-count">{count > 99 ? "99+" : count}</span>}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </div>
       </nav>
 
-      {open && user && (
-        <div className="mb-4 rounded-xl border border-white/10 bg-white/5 p-3">
-          <p className="truncate text-xs font-semibold text-white">
-            {user.first_name || user.last_name ? `${user.first_name} ${user.last_name}` : user.username}
-          </p>
-          <p className="truncate text-[11px] text-teal-200">{perms.role.replace(/_/g, " ").toLowerCase()}</p>
-        </div>
+      {user && (
+        <Link
+          to="/profile"
+          title="My profile"
+          className={cn(
+            "flex shrink-0 items-center gap-3 border-t transition-colors hover:bg-(--surface-3)",
+            open ? "px-5 py-3.5" : "justify-center py-3.5",
+          )}
+          style={{ borderColor: "var(--border-color)" }}
+        >
+          <span className="avatar h-9 w-9 text-xs">{initials || "U"}</span>
+          {open && (
+            <span className="min-w-0">
+              <span className="block truncate text-[13px] font-semibold text-primary-c">{fullName}</span>
+              <span className="block truncate text-[11px] text-muted-c">{roleLabel(perms.role)}</span>
+            </span>
+          )}
+        </Link>
       )}
     </aside>
   );

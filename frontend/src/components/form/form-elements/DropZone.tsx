@@ -136,7 +136,7 @@ export default function DropzoneComponent() {
             </p>
 
             {/* Action Prompt */}
-            <span className="text-theme-sm font-medium text-brand-500 underline hover:text-brand-600">
+            <span className="text-theme-sm font-medium text-brand-600 underline hover:text-brand-600">
               Browse File
             </span>
           </div>

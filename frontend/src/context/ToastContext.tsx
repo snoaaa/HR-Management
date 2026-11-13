@@ -32,7 +32,7 @@ const ToastItem = ({ toast, remove }: { toast: Toast; remove: (id: number) => vo
 
     const timer = setTimeout(() => {
       remove(toast.id);
-    }, 4000);
+    }, 5000);
     
     return () => {
       clearTimeout(progressTimer);
@@ -41,38 +41,30 @@ const ToastItem = ({ toast, remove }: { toast: Toast; remove: (id: number) => vo
   }, [toast.id, remove]);
 
   const typeConfig = {
-    success: { icon: "✓", bg: "bg-success-500", text: "text-success-700", ring: "ring-success-500/20" },
-    error: { icon: "✕", bg: "bg-error-500", text: "text-error-700", ring: "ring-error-500/20" },
-    warning: { icon: "⚠", bg: "bg-warning-500", text: "text-warning-700", ring: "ring-warning-500/20" },
-    info: { icon: "ℹ", bg: "bg-brand-500", text: "text-brand-700", ring: "ring-brand-500/20" },
+    success: { icon: "✓", bg: "bg-success-600", label: "Done" },
+    error: { icon: "!", bg: "bg-error-600", label: "Something went wrong" },
+    warning: { icon: "!", bg: "bg-warning-500", label: "Please note" },
+    info: { icon: "i", bg: "bg-blue-light-600", label: "Information" },
   };
 
   const config = typeConfig[toast.type];
 
   return (
     <div
-      className={`relative overflow-hidden flex items-center gap-3 w-80 max-w-[calc(100vw-32px)] 
-      rounded-2xl p-4 shadow-2xl ring-1 ${config.ring} 
-      bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl transition-all duration-300 ease-out`}
+      role={toast.type === "error" ? "alert" : "status"}
+      className="menu-panel relative flex w-88 max-w-[calc(100vw-32px)] items-start gap-3 overflow-hidden p-4 pe-10"
+      style={{ boxShadow: "var(--shadow-overlay)" }}
     >
-      <div className={`flex items-center justify-center w-8 h-8 rounded-full ${config.bg} text-white font-bold shadow-md`}>
-        {config.icon}
+      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${config.bg} text-sm font-bold text-white`}>{config.icon}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-semibold text-muted-c">{config.label}</p>
+        <p className="mt-0.5 text-sm font-medium text-primary-c">{toast.message}</p>
       </div>
-      <p className="flex-1 text-sm font-medium text-gray-800 dark:text-white/90 pr-4">
-        {toast.message}
-      </p>
-      <button
-        onClick={() => remove(toast.id)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-      >
-        <span className="sr-only">Close</span>
+      <button onClick={() => remove(toast.id)} className="btn-icon absolute end-1.5 top-1.5" aria-label="Dismiss">
         ✕
       </button>
-      <div className="absolute bottom-0 left-0 h-1 bg-gray-100 dark:bg-gray-800 w-full">
-        <div 
-          className={`h-full ${config.bg}`} 
-          style={{ width: `${progress}%`, transition: "width 3950ms linear" }}
-        />
+      <div className="absolute inset-x-0 bottom-0 h-0.5" style={{ background: "var(--surface-3)" }}>
+        <div className={`h-full ${config.bg}`} style={{ width: `${progress}%`, transition: "width 4950ms linear" }} />
       </div>
     </div>
   );
@@ -97,7 +89,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return (
     <ToastContext.Provider value={{ addToast, success, error, info, warning }}>
       {children}
-      <div className="fixed bottom-6 right-6 z-[999999] flex flex-col gap-4 pointer-events-none">
+      <div className="pointer-events-none fixed end-4 top-20 z-[999999] flex flex-col gap-3 sm:end-6" aria-live="polite">
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">
             <ToastItem toast={toast} remove={removeToast} />

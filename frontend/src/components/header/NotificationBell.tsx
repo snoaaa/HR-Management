@@ -16,7 +16,7 @@ interface Notification {
 }
 
 const CATEGORY_TONE: Record<string, string> = {
-  APPROVAL: "badge-purple",
+  APPROVAL: "badge-brand",
   ALERT: "badge-orange",
   REQUEST: "badge-blue",
   PAYROLL: "badge-teal",
@@ -77,28 +77,29 @@ export default function NotificationBell() {
       <button
         type="button"
         onClick={toggle}
-        className="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/5"
-        aria-label="Notifications"
+        className="topbar-btn"
+        aria-label={count > 0 ? `Notifications: ${count} unread` : "Notifications"}
+        title="Notifications"
       >
         <BellAltIcon className="size-5" />
         {count > 0 && (
-          <span className="absolute -end-0.5 -top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-teal-500 px-1 text-[10px] font-bold text-white">
+          <span className="absolute end-0.5 top-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-accent-500 px-1 text-[10px] font-bold text-white ring-2 ring-(--surface)">
             {count > 99 ? "99+" : count}
           </span>
         )}
       </button>
       {open && (
-        <div className="card animate-scale-in absolute end-0 z-99999 mt-3 w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden shadow-theme-lg">
+        <div className="menu-panel absolute end-0 z-99999 mt-2 w-[23rem] max-w-[calc(100vw-2rem)] overflow-hidden">
           <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: "var(--border-color)" }}>
             <p className="text-sm font-semibold text-primary-c">Notifications</p>
             {count > 0 && (
-              <button type="button" className="text-xs font-medium text-brand-500 hover:underline dark:text-brand-300" onClick={markAll}>
+              <button type="button" className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400" onClick={markAll}>
                 Mark all as read
               </button>
             )}
           </div>
           <ul className="max-h-96 overflow-y-auto custom-scrollbar">
-            {items.length === 0 && <li className="px-4 py-8 text-center text-sm text-muted-c">You are all caught up.</li>}
+            {items.length === 0 && <li className="px-4 py-10 text-center text-sm text-muted-c">You are all caught up. New messages will appear here.</li>}
             {items.map((n) => (
               <li key={n.id}>
                 <button
@@ -107,7 +108,7 @@ export default function NotificationBell() {
                   className="flex w-full gap-3 border-b px-4 py-3 text-start transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
                   style={{ borderColor: "var(--row-divider)" }}
                 >
-                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.is_read ? "bg-transparent" : "bg-teal-500"}`} />
+                  <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.is_read ? "bg-transparent" : "bg-brand-500"}`} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-2">
                       <span className={CATEGORY_TONE[n.category] || "badge-gray"}>{n.category.toLowerCase()}</span>
@@ -120,7 +121,7 @@ export default function NotificationBell() {
               </li>
             ))}
           </ul>
-          <Link to="/notifications" onClick={() => setOpen(false)} className="block py-2.5 text-center text-xs font-semibold text-brand-500 hover:bg-gray-50 dark:text-brand-300 dark:hover:bg-white/5">
+          <Link to="/notifications" onClick={() => setOpen(false)} className="block py-2.5 text-center text-xs font-semibold text-brand-600 hover:bg-gray-50 dark:text-brand-400 dark:hover:bg-white/5">
             See all notifications
           </Link>
         </div>

@@ -40,7 +40,7 @@ export default function ContractList() {
       <PageHeader
         eyebrow="Personnel"
         title="Contracts"
-        subtitle="Contracts, amendments, renewals, suspensions and terminations (M-04)."
+        subtitle="Contracts, amendments, renewals, suspensions and terminations."
         actions={
           can("contracts", "create") && (
             <button type="button" className="btn-primary" onClick={() => setCreating(true)}>
@@ -74,13 +74,13 @@ export default function ContractList() {
             ))}
           </select>
         </div>
-        <DataTable<ContractRow>
+        <DataTable<ContractRow> exportTitle="Contracts"
           rows={rows}
           loading={loading}
           onRowClick={(c) => navigate(`/contracts/${c.id}`)}
           empty="No contract yet."
           columns={[
-            { key: "reference", header: "Reference", mono: true, render: (c) => <span className="font-semibold text-brand-600 dark:text-brand-300">{c.reference}</span> },
+            { key: "reference", header: "Reference", mono: true, render: (c) => <span className="font-semibold text-brand-600 dark:text-brand-400">{c.reference}</span> },
             { key: "employee_name", header: "Employee", render: (c) => (
               <div>
                 <p className="font-medium text-primary-c">{c.employee_name}</p>

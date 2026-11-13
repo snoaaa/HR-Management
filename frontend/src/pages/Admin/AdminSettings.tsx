@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SearchSelect from "@/components/kit/SearchSelect";
 import api from "@/api/axiosConfig";
 import { apiError } from "@/api/helpers";
 import CrudSection from "@/components/kit/CrudSection";
@@ -57,7 +58,7 @@ function Settings() {
     }
   };
   return (
-    <Card title="Reference parameters (BN-178)" padded={false}>
+    <Card title="Reference parameters" padded={false}>
       <table className="w-full">
         <thead>
           <tr>
@@ -127,11 +128,13 @@ function CircuitEditor({ circuit, onClose, onSaved }: { circuit: Circuit | null;
                   </option>
                 ))}
               </select>
-              <input
-                className="input-field w-40"
-                placeholder="Substitute user id"
-                value={level.substitute ?? ""}
-                onChange={(e) => setLevels((prev) => prev.map((l, i) => (i === index ? { ...l, substitute: e.target.value ? Number(e.target.value) : null } : l)))}
+              <SearchSelect
+                className="w-64"
+                url="users/management/"
+                value={level.substitute}
+                label={(u) => `${u.first_name || ""} ${u.last_name || ""} (${u.username})`.trim()}
+                placeholder="Substitute – search a user…"
+                onChange={(v) => setLevels((prev) => prev.map((l, i) => (i === index ? { ...l, substitute: v ? Number(v) : null } : l)))}
               />
               <button type="button" className="btn-icon" onClick={() => setLevels((prev) => prev.filter((_, i) => i !== index))} aria-label="Remove">
                 ✕
@@ -215,7 +218,7 @@ export default function AdminSettings() {
         <CrudSection
           endpoint="users/management/"
           title="Accounts"
-          description="Individual accounts (BN-169). New accounts receive the password Welcome123! and must change it at first login."
+          description="Individual accounts. New accounts receive the password Welcome123! and must change it at first login."
           canDelete
           columns={[
             { key: "username", header: "Username", render: (u: any) => <span className="font-medium text-primary-c">{u.username}</span> },

@@ -1,0 +1,23 @@
+.git
+.github
+.vscode
+.idea
+docs
+*.md
+logo.png
+
+# Never bake local secrets or local data into the image
+**/.env
+**/.env.*
+!.env.docker.example
+backend/.venv
+backend/venv
+backend/media
+backend/backups
+backend/staticfiles
+backend/db.sqlite3
+**/__pycache__
+**/*.pyc
+
+frontend/node_modules
+frontend/dist

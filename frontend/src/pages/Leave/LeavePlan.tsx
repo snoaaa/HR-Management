@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { useApiList, useOptions } from "@/components/kit/hooks";
+import SearchSelect from "@/components/kit/SearchSelect";
+import { useApiList } from "@/components/kit/hooks";
 import { MONTHS } from "@/components/kit/options";
 import { Card, Empty, Spinner } from "@/components/kit/ui";
 import { cn } from "@/utils";
@@ -23,7 +24,6 @@ export default function LeavePlan() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());
   const [department, setDepartment] = useState("");
-  const departments = useOptions("organisation/departments/", (d) => d.name);
   const { rows, loading } = useApiList<LeaveRow>("leave/requests/plan/", { year, ...(department ? { department } : {}) });
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -52,14 +52,14 @@ export default function LeavePlan() {
       title="Leave plan"
       actions={
         <div className="flex flex-wrap items-center gap-2">
-          <select className="input-field w-auto" value={department} onChange={(e) => setDepartment(e.target.value)}>
-            <option value="">All departments</option>
-            {departments.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.label}
-              </option>
-            ))}
-          </select>
+          <SearchSelect
+            className="w-60"
+            url="organisation/departments/"
+            value={department || null}
+            label={(d) => d.name}
+            placeholder="All departments – search…"
+            onChange={(v) => setDepartment(v ? String(v) : "")}
+          />
           <button type="button" className="btn-icon" onClick={() => (month === 0 ? (setMonth(11), setYear(year - 1)) : setMonth(month - 1))} aria-label="Previous month">
             ‹
           </button>
@@ -104,7 +104,7 @@ export default function LeavePlan() {
                           <span
                             title={`${leave.leave_type_name} (${leave.status.toLowerCase()})`}
                             className={cn("block h-6 w-7 rounded", leave.status !== "APPROVED" && "opacity-50 ring-1 ring-inset ring-white")}
-                            style={{ background: leave.leave_type_color, backgroundImage: leave.status === "SUBMITTED" ? "repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,.4) 3px, rgba(255,255,255,.4) 6px)" : undefined }}
+                            style={{ background: leave.leave_type_color }}
                           />
                         )}
                       </td>

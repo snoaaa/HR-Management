@@ -64,7 +64,7 @@ export async function downloadFile(
     }
     setTimeout(() => URL.revokeObjectURL(href), 60_000);
   } catch (err) {
-    throw new Error(await blobError(err));
+    throw new Error(await blobError(err), { cause: err });
   }
 }
 

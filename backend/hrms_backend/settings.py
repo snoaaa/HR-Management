@@ -34,7 +34,39 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+]
+
+# Deployment behind an HTTPS reverse proxy (e.g. https://agile.emakotech.cloud
+# forwarded to this application on port 8000).
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+if os.environ.get("BEHIND_HTTPS_PROXY", "False").lower() == "true":
+    # Trust the proxy to say that the visitor used HTTPS, so generated links
+    # (uploaded files, documents) start with https:// and cookies are secure.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    USE_X_FORWARDED_HOST = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+# Production build of the React application (npm run build). When it exists,
+# Django serves it at the root URL, next to the API (single origin, port 8000).
+FRONTEND_DIST = Path(
+    os.environ.get("FRONTEND_DIST", BASE_DIR.parent / "frontend" / "dist")
+)
+SERVE_FRONTEND = (FRONTEND_DIST / "index.html").is_file()
+try:
+    import whitenoise  # noqa: F401
+
+    HAS_WHITENOISE = True
+except ImportError:  # optional outside the container
+    HAS_WHITENOISE = False
 
 
 # Application definition
@@ -75,6 +107,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    *(["whitenoise.middleware.WhiteNoiseMiddleware"] if HAS_WHITENOISE else []),
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -147,6 +180,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.environ.get("STATIC_ROOT", os.path.join(BASE_DIR, "staticfiles"))
+if SERVE_FRONTEND:
+    # Files of the build (assets/, brand/, favicon…) are served from "/".
+    WHITENOISE_ROOT = FRONTEND_DIST
+# Uploaded files (logo, photographs, documents) are served by Django when
+# DEBUG is on, or when SERVE_MEDIA=true (single-container deployment).
+SERVE_MEDIA = os.environ.get("SERVE_MEDIA", str(DEBUG)).lower() == "true"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 if "test" in sys.argv:

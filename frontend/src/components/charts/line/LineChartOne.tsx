@@ -23,11 +23,8 @@ export default function LineChartOne() {
     },
 
     fill: {
-      type: "gradient",
-      gradient: {
-        opacityFrom: 0.55,
-        opacityTo: 0,
-      },
+      type: "solid",
+      opacity: 0.15,
     },
     markers: {
       size: 0, // Size of the marker points

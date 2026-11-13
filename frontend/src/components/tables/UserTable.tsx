@@ -99,7 +99,7 @@ export default function UserTable({ refreshTrigger = 0, onEditUser }: UserTableP
               <TableRow key={u.id}>
                 <TableCell className="px-5 py-4 text-start whitespace-nowrap sm:px-6">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-brand-100 text-brand-600 font-bold dark:bg-brand-900 dark:text-brand-300">
+                    <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-brand-100 text-brand-600 font-bold dark:bg-brand-900 dark:text-brand-400">
                       {u.username.charAt(0).toUpperCase()}
                     </div>
                     <div>

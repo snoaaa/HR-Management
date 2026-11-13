@@ -1,0 +1,11 @@
+# HTTPS front door for Saint Jean HRMS (used with: docker compose --profile https up -d).
+# Caddy obtains and renews the Let's Encrypt certificate by itself; the DNS record
+# of the domain must point to this server and ports 80 and 443 must be open.
+{$HRMS_DOMAIN:agile.emakotech.cloud} {
+	encode zstd gzip
+	# Uploaded documents and imports can be large.
+	request_body {
+		max_size 50MB
+	}
+	reverse_proxy app:8000
+}

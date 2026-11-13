@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import api from "@/api/axiosConfig";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import type { Position } from "./PositionsTable";
-import type { Classification } from "./ClassificationsTable";
-import type { Department } from "./DepartmentsTable";
 import { useToast } from "@/context/ToastContext";
+import SearchSelect from "@/components/kit/SearchSelect";
 
 interface PositionModalProps {
   position: Position | null;
@@ -25,19 +24,10 @@ export default function PositionModal({ position, onClose, onSuccess }: Position
     department: position?.department || "",
   });
 
-  const [classifications, setClassifications] = useState<Classification[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [positions, setPositions] = useState<Position[]>([]);
 
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
-  useEffect(() => {
-    // Fetch dependencies
-    api.get("organisation/classifications/").then((res) => setClassifications(res.data));
-    api.get("organisation/departments/").then((res) => setDepartments(res.data));
-    api.get("organisation/positions/").then((res) => setPositions(res.data));
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     let value = e.target.value;
@@ -118,55 +108,35 @@ export default function PositionModal({ position, onClose, onSuccess }: Position
 
             <div>
               <Label>Department / Unit</Label>
-              <select
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              >
-                <option value="">-- Select Department --</option>
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name} ({d.code})
-                  </option>
-                ))}
-              </select>
+              <SearchSelect
+                url="organisation/departments/"
+                value={formData.department || null}
+                label={(d) => `${d.name} (${d.code})`}
+                placeholder="Search a department…"
+                onChange={(v) => setFormData((prev) => ({ ...prev, department: v ?? "" }))}
+              />
             </div>
 
             <div>
               <Label>Reporting To</Label>
-              <select
-                name="reporting_position"
-                value={formData.reporting_position}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              >
-                <option value="">-- Top Level --</option>
-                {positions
-                  .filter((p) => p.id !== position?.id)
-                  .map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.title} ({p.code})
-                    </option>
-                  ))}
-              </select>
+              <SearchSelect
+                url="organisation/positions/"
+                value={formData.reporting_position || null}
+                label={(p) => `${p.title} (${p.code})`}
+                placeholder="Top level – search a position…"
+                onChange={(v) => setFormData((prev) => ({ ...prev, reporting_position: v ?? "" }))}
+              />
             </div>
 
             <div className="sm:col-span-2">
               <Label>Classification Grid</Label>
-              <select
-                name="classification"
-                value={formData.classification}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800"
-              >
-                <option value="">-- Select Classification --</option>
-                {classifications.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.category} - Grade {c.grade} {c.echelon ? `(Echelon ${c.echelon})` : ""}
-                  </option>
-                ))}
-              </select>
+              <SearchSelect
+                url="organisation/classifications/"
+                value={formData.classification || null}
+                label={(c) => [c.category, c.grade, c.echelon].filter(Boolean).join(" – ")}
+                placeholder="Search a category…"
+                onChange={(v) => setFormData((prev) => ({ ...prev, classification: v ?? "" }))}
+              />
             </div>
 
             <div className="sm:col-span-2">

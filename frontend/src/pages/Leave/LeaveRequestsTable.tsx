@@ -55,7 +55,7 @@ export default function LeaveRequestsTable({
 
   return (
     <>
-      <DataTable<LeaveRequest>
+      <DataTable<LeaveRequest> exportTitle="Leave requests"
         rows={rows}
         loading={loading}
         empty="No leave request."
@@ -165,7 +165,7 @@ export default function LeaveRequestsTable({
       />
       <FormModal
         open={dialog?.kind === "interrupt"}
-        title="Interrupt the leave (BN-54)"
+        title="Interrupt the leave"
         size="sm"
         fields={[{ name: "last_day", label: "Last day of leave", type: "date", required: true }]}
         onClose={() => setDialog(null)}
@@ -175,7 +175,7 @@ export default function LeaveRequestsTable({
       />
       <FormModal
         open={dialog?.kind === "postpone"}
-        title="Postpone the leave (BN-54)"
+        title="Postpone the leave"
         size="sm"
         intro={<p className="text-sm text-secondary-c">The new dates go through the approval circuit again.</p>}
         fields={[

@@ -34,7 +34,7 @@ def export_rows(headers, rows, filename, fmt="csv", title=None, subtitle=""):
         # Excel forbids some characters in sheet names.
         ws.title = re.sub(r"[\[\]:*?/\\]", "-", title or "Export")[:31]
         ws.append(headers)
-        header_fill = PatternFill("solid", fgColor="714B67")
+        header_fill = PatternFill("solid", fgColor="101926")
         for cell in ws[1]:
             cell.font = Font(bold=True, color="FFFFFF")
             cell.fill = header_fill

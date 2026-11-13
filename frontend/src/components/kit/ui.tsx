@@ -1,29 +1,39 @@
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+import { Link } from "react-router";
 import PageMeta from "@/components/common/PageMeta";
+import { ChevronLeftIcon, CloseIcon, InboxAltIcon } from "@/icons";
 import { cn } from "@/utils";
 
 export function PageHeader({
   title,
   subtitle,
   actions,
-  eyebrow,
+  back,
 }: {
   title: string;
   subtitle?: ReactNode;
   actions?: ReactNode;
+  /** Kept for compatibility: the section is shown by the breadcrumb of the top bar. */
   eyebrow?: string;
+  /** Link back to the parent list, shown above the title. */
+  back?: { to: string; label: string };
 }) {
   return (
     <>
       <PageMeta title={`${title} | Saint Jean HRMS`} description={typeof subtitle === "string" ? subtitle : title} />
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between animate-fade-in">
-        <div>
-          {eyebrow && <p className="section-label mb-1">{eyebrow}</p>}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between animate-fade-in">
+        <div className="min-w-0">
+          {back && (
+            <Link to={back.to} className="mb-2 inline-flex items-center gap-1 text-[13px] font-semibold text-secondary-c hover:text-(--brand-strong)">
+              <ChevronLeftIcon className="size-4 rtl:rotate-180" />
+              {back.label}
+            </Link>
+          )}
           <h1 className="page-title">{title}</h1>
-          {subtitle && <p className="mt-1 text-sm text-secondary-c">{subtitle}</p>}
+          {subtitle && <p className="mt-1.5 max-w-3xl text-sm text-secondary-c">{subtitle}</p>}
         </div>
-        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+        {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
       </div>
     </>
   );
@@ -39,8 +49,8 @@ export function Card({ title, actions, children, className, padded = true }: {
   return (
     <section className={cn("card animate-fade-in", className)}>
       {(title || actions) && (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-5 py-3.5" style={{ borderColor: "var(--border-color)" }}>
-          {title && <h2 className="text-sm font-semibold text-primary-c">{title}</h2>}
+        <div className="flex min-h-14 flex-wrap items-center justify-between gap-2 border-b px-5 py-3" style={{ borderColor: "var(--border-color)" }}>
+          {title && <h2 className="text-[15px] font-semibold text-primary-c">{title}</h2>}
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
       )}
@@ -87,17 +97,17 @@ export function Modal({
   if (!open) return null;
   const width = { sm: "max-w-md", md: "max-w-xl", lg: "max-w-3xl", xl: "max-w-5xl" }[size];
   return (
-    <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay" role="dialog" aria-modal="true" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className={cn("modal-box", width)}>
         <div className="modal-header">
           <h3 className="text-base font-semibold text-primary-c">{title}</h3>
           <button type="button" className="btn-icon" onClick={onClose} aria-label="Close">
-            ✕
+            <CloseIcon className="size-5" />
           </button>
         </div>
         <div className="px-6 py-5">{children}</div>
         {footer && (
-          <div className="sticky bottom-0 flex justify-end gap-2 border-t px-6 py-3" style={{ borderColor: "var(--border-color)", background: "var(--surface)" }}>
+          <div className="sticky bottom-0 flex flex-wrap justify-end gap-2 border-t px-6 py-3.5" style={{ borderColor: "var(--border-color)", background: "var(--surface-2)" }}>
             {footer}
           </div>
         )}
@@ -115,6 +125,8 @@ const TONES: Record<string, string> = {
   gray: "badge-gray",
   purple: "badge-purple",
   teal: "badge-teal",
+  brand: "badge-brand",
+  dark: "badge-dark",
 };
 
 /** Colour of the usual statuses of the application. */
@@ -170,10 +182,10 @@ export function Badge({ children, tone = "gray" }: { children: ReactNode; tone?:
 export function StatusBadge({ value, label }: { value?: string | null; label?: string | null }) {
   if (!value) return <span className="text-muted-c">—</span>;
   const text = label || value.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
-  return <Badge tone={STATUS_TONE[value] || "gray"}>{text}</Badge>;
+  return <span className={`${TONES[STATUS_TONE[value] || "gray"]} badge-dot`}>{text}</span>;
 }
 
-export function KpiTile({ label, value, hint, accent = "var(--odoo-purple)", icon }: {
+export function KpiTile({ label, value, hint, accent = "var(--brand)", icon }: {
   label: string;
   value: ReactNode;
   hint?: ReactNode;
@@ -184,30 +196,53 @@ export function KpiTile({ label, value, hint, accent = "var(--odoo-purple)", ico
     <div className="stat-card kpi-tile animate-fade-in" style={{ ["--kpi-accent" as any]: accent }}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="section-label">{label}</p>
-          <p className="kpi-value mt-2 truncate">{value}</p>
-          {hint && <p className="mt-1 text-xs text-muted-c">{hint}</p>}
+          <p className="flex items-center gap-2 text-[13px] font-medium text-secondary-c">
+            {!icon && <span className="kpi-swatch" />}
+            <span className="truncate">{label}</span>
+          </p>
+          <div className="kpi-value mt-2 truncate">{value}</div>
+          {hint && <p className="mt-1.5 text-xs text-muted-c">{hint}</p>}
         </div>
-        {icon && (
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: accent }}>
-            {icon}
-          </span>
-        )}
+        {icon && <span className="kpi-icon">{icon}</span>}
       </div>
     </div>
   );
 }
 
-export function Empty({ children = "Nothing to show yet." }: { children?: ReactNode }) {
-  return <div className="py-10 text-center text-sm text-muted-c">{children}</div>;
+/** Friendly "nothing here" state, with an optional next step. */
+export function Empty({ children = "Nothing to show yet.", action }: { children?: ReactNode; action?: ReactNode }) {
+  return (
+    <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+      <span className="flex h-12 w-12 items-center justify-center rounded-2xl text-muted-c" style={{ background: "var(--surface-3)" }}>
+        <InboxAltIcon className="size-6" />
+      </span>
+      <div className="max-w-sm text-sm text-secondary-c">{children}</div>
+      {action}
+    </div>
+  );
 }
 
 export function Spinner({ label = "Loading…" }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-c">
-      <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-200 border-t-brand-500" />
+    <div className="flex items-center justify-center gap-3 py-12 text-sm text-muted-c" role="status">
+      <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand-200 border-t-brand-500 dark:border-brand-900 dark:border-t-brand-400" />
       {label}
     </div>
+  );
+}
+
+/** Initials of a person in a soft round badge. */
+export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w.charAt(0))
+    .join("");
+  return (
+    <span className="avatar" style={{ width: size, height: size, fontSize: Math.round(size * 0.36) }} aria-hidden="true">
+      {initials || "?"}
+    </span>
   );
 }
 
@@ -239,8 +274,8 @@ export function DefinitionList({ items }: { items: [ReactNode, ReactNode][] }) {
     <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
       {items.map(([k, v], i) => (
         <div key={i} className="flex flex-col">
-          <dt className="section-label">{k}</dt>
-          <dd className="mt-0.5 text-sm text-primary-c">{v ?? "—"}</dd>
+          <dt className="text-xs font-medium text-muted-c">{k}</dt>
+          <dd className="mt-0.5 text-sm font-medium text-primary-c">{v ?? "—"}</dd>
         </div>
       ))}
     </dl>

@@ -4,8 +4,8 @@ import api from "@/api/axiosConfig";
 import { apiError } from "@/api/helpers";
 import { useToast } from "@/context/ToastContext";
 import { cn } from "@/utils";
-import { useOptions } from "./hooks";
 import type { Option } from "./hooks";
+import SearchSelect from "./SearchSelect";
 import { Field, Modal } from "./ui";
 
 export type FieldType =
@@ -15,6 +15,7 @@ export type FieldType =
   | "time"
   | "textarea"
   | "select"
+  | "multiselect"
   | "checkbox"
   | "json"
   | "color"
@@ -39,32 +40,85 @@ export interface FieldDef {
   rows?: number;
   hidden?: (values: Record<string, any>) => boolean;
   readOnly?: boolean;
+  /** Sent with the form even when hidden (fixed context values). */
+  alwaysSend?: boolean;
 }
 
 function SelectInput({ field, value, onChange }: { field: FieldDef; value: any; onChange: (v: any) => void }) {
-  const loaded = useOptions(field.optionsUrl, field.optionLabel || ((r) => r.name || r.title || r.full_name || String(r.id)), field.optionValue);
-  const options = field.options || loaded;
   return (
-    <select
-      className="input-field"
-      value={value ?? ""}
+    <SearchSelect
+      value={value}
+      onChange={onChange}
+      url={field.options ? undefined : field.optionsUrl}
+      options={field.options}
+      label={field.optionLabel}
+      valueOf={field.optionValue}
       required={field.required}
       disabled={field.readOnly}
-      onChange={(e) => onChange(e.target.value === "" ? null : e.target.value)}
-    >
-      <option value="">{field.placeholder || "— Select —"}</option>
-      {options.map((o) => (
-        <option key={String(o.value)} value={String(o.value)}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+      placeholder={field.placeholder || "Type to search…"}
+    />
   );
+}
+
+function MultiSelectInput({ field, value, onChange }: { field: FieldDef; value: any; onChange: (v: any) => void }) {
+  const values: any[] = Array.isArray(value) ? value : [];
+  return (
+    <div className="space-y-2">
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {values.map((v) => (
+            <span key={String(v)} className="badge-purple gap-1">
+              <ChipLabel field={field} value={v} />
+              {!field.readOnly && (
+                <button type="button" aria-label="Remove" onClick={() => onChange(values.filter((x) => x !== v))}>
+                  ×
+                </button>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
+      {!field.readOnly && (
+        <SearchSelect
+          value={null}
+          url={field.options ? undefined : field.optionsUrl}
+          options={field.options}
+          label={field.optionLabel}
+          valueOf={field.optionValue}
+          placeholder={field.placeholder || "Search to add…"}
+          onChange={(v) => {
+            if (v === null || values.includes(v)) return;
+            onChange([...values, v]);
+          }}
+        />
+      )}
+      {values.length === 0 && <span className="text-xs text-muted-c">None selected.</span>}
+    </div>
+  );
+}
+
+/** Name of an item of a multi-select, read from the API. */
+function ChipLabel({ field, value }: { field: FieldDef; value: any }) {
+  const [label, setLabel] = useState(String(value));
+  useEffect(() => {
+    const known = field.options?.find((o) => String(o.value) === String(value));
+    if (known) {
+      setLabel(known.label);
+      return;
+    }
+    if (!field.optionsUrl) return;
+    api
+      .get(`${field.optionsUrl.split("?")[0]}${value}/`)
+      .then((res) => setLabel((field.optionLabel || ((r: any) => r.name || r.title || String(r.id)))(res.data)))
+      .catch(() => undefined);
+  }, [value]);
+  return <>{label}</>;
 }
 
 export function FieldInput({ field, value, onChange }: { field: FieldDef; value: any; onChange: (v: any) => void }) {
   const type = field.type || "text";
   if (type === "select") return <SelectInput field={field} value={value} onChange={onChange} />;
+  if (type === "multiselect") return <MultiSelectInput field={field} value={value} onChange={onChange} />;
   if (type === "checkbox")
     return (
       <span className="flex items-center gap-2 pt-1">
@@ -125,7 +179,7 @@ export function toPayload(fields: FieldDef[], values: Record<string, any>) {
   const hasFile = fields.some((f) => f.type === "file" && values[f.name] instanceof File);
   const out: Record<string, any> = {};
   for (const f of fields) {
-    if (f.readOnly || f.hidden?.(values)) continue;
+    if ((f.readOnly || f.hidden?.(values)) && !f.alwaysSend) continue;
     let v = values[f.name];
     if (f.type === "json" && typeof v === "string") {
       try {
@@ -214,7 +268,7 @@ export function FormModal({
       onSaved?.(data);
       onClose();
     } catch (err: any) {
-      setError(err instanceof Error && !err.hasOwnProperty("response") ? err.message : apiError(err));
+      setError(err instanceof Error && !Object.prototype.hasOwnProperty.call(err, "response") ? err.message : apiError(err));
     } finally {
       setSaving(false);
     }

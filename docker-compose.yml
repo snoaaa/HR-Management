@@ -1,0 +1,81 @@
+# Saint Jean HRMS – application + PostgreSQL, deployed on https://agile.emakotech.cloud
+#
+# The application listens on port 8000 (API under /api/, web application at /).
+#
+#   A) The server already has a reverse proxy / platform that handles HTTPS
+#      (Nginx, Traefik, Coolify, Dokploy, Cloudflare tunnel…):
+#        docker compose up -d --build
+#      then point the proxy for agile.emakotech.cloud to port 8000.
+#
+#   B) Nothing handles HTTPS yet: also start the bundled Caddy proxy, which
+#      obtains and renews the certificate automatically (ports 80 and 443):
+#        docker compose --profile https up -d --build
+#
+# Copy .env.docker.example to .env first and set the secrets.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hrms}
+      POSTGRES_USER: ${POSTGRES_USER:-hrms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the .env file}
+    volumes:
+      - hrms_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hrms} -d ${POSTGRES_DB:-hrms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    image: saint-jean-hrms:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      # HRMS_BIND=127.0.0.1 keeps port 8000 private to the server (recommended
+      # when a proxy on the same machine is the only visitor).
+      - "${HRMS_BIND:-0.0.0.0}:${HRMS_PORT:-8000}:8000"
+    environment:
+      PORT: 8000
+      DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in the .env file}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-agile.emakotech.cloud,localhost,127.0.0.1}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-https://agile.emakotech.cloud}
+      BEHIND_HTTPS_PROXY: ${BEHIND_HTTPS_PROXY:-true}
+      DATABASE_URL: postgres://${POSTGRES_USER:-hrms}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-hrms}
+      # The web application and the API share one origin, so no CORS origin is needed.
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-hrms@agile.emakotech.cloud}
+      # true = load the demonstration accounts and data on the first start.
+      SEED_DEMO: ${SEED_DEMO:-false}
+    volumes:
+      - hrms_media:/app/media
+      - hrms_backups:/app/backups
+
+  # Optional HTTPS front door (profile "https"): https://agile.emakotech.cloud → app:8000
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["https"]
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      HRMS_DOMAIN: ${HRMS_DOMAIN:-agile.emakotech.cloud}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  hrms_db:
+  hrms_media:
+  hrms_backups:
+  caddy_data:
+  caddy_config:

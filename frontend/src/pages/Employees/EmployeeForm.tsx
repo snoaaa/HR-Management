@@ -11,6 +11,8 @@ import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { NATIONALITIES } from "@/constants/nationalities";
 import Select, { components } from 'react-select';
+import SearchSelect from '@/components/kit/SearchSelect';
+import { apiError } from "@/api/helpers";
 import type { OptionProps, SingleValueProps } from 'react-select';
 
 const CustomFlag = ({ country, countryName }: { country: string, countryName: string }) => {
@@ -145,15 +147,25 @@ export default function EmployeeForm() {
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
+    // Only the editable fields: the photo is sent on its own, the nested
+    // lists and computed values are read-only, an empty date is no date.
+    const READ_ONLY = ["photograph", "family_members", "documents", "education_experience", "history", "age", "number_of_children",
+      "seniority_years", "full_name", "department_name", "position_title", "workplace_name", "classification_label",
+      "region_label", "title_label", "education_level_label", "matriculation_number"];
+    const payload: Record<string, any> = {};
+    for (const [key, value] of Object.entries(formData)) {
+      if (READ_ONLY.includes(key)) continue;
+      payload[key] = (key.endsWith("_date") || key.endsWith("_validity")) && value === "" ? null : value;
+    }
     try {
       if (isEdit && id) {
-        await updateEmployee(parseInt(id), formData);
+        await updateEmployee(parseInt(id), payload as Partial<Employee>);
       } else {
-        await createEmployee(formData);
+        await createEmployee(payload as Partial<Employee>);
       }
       navigate("/employees");
     } catch (err: any) {
-      setError("An error occurred while saving the employee.");
+      setError(apiError(err, "An error occurred while saving the employee."));
     } finally {
       setLoading(false);
     }
@@ -181,7 +193,7 @@ export default function EmployeeForm() {
               {isCompleted ? <CheckCircleIcon className="w-6 h-6 fill-current" /> : index + 1}
             </div>
             <span className={`text-xs font-semibold uppercase tracking-wider ${
-              isActive || isCompleted ? "text-brand-500" : "text-gray-400"
+              isActive || isCompleted ? "text-brand-600" : "text-gray-400"
             }`}>
               {step}
             </span>
@@ -213,12 +225,20 @@ export default function EmployeeForm() {
                 <h3 className="col-span-1 md:col-span-2 text-lg font-semibold text-gray-800 dark:text-white border-b pb-2 mb-2">Civil Identity</h3>
                 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+                  <select name="title" value={(formData as any).title || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"><option value="">—</option><option value="MR">Mr</option><option value="MRS">Mrs</option><option value="MS">Ms</option><option value="DR">Dr</option><option value="PR">Pr</option></select>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Surname</label>
                   <input required name="surname" value={formData.surname} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Given Names</label>
                   <input required name="given_names" value={formData.given_names} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Maiden name (if any)</label>
+                  <input name="maiden_name" value={(formData as any).maiden_name || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date of Birth</label>
@@ -286,6 +306,34 @@ export default function EmployeeForm() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Identity Document Number</label>
                   <input required name="identity_document_number" value={formData.identity_document_number} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Issued on</label>
+                  <input type="date" name="identity_document_issue_date" value={(formData as any).identity_document_issue_date || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Issued at</label>
+                  <input name="identity_document_issue_place" placeholder="e.g. Douala" value={(formData as any).identity_document_issue_place || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Valid until</label>
+                  <input type="date" name="identity_document_validity" value={(formData as any).identity_document_validity || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Highest diploma</label>
+                  <select name="education_level" value={(formData as any).education_level || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"><option value="">—</option><option value="NONE">No diploma</option><option value="CEP">CEP / FSLC (primary)</option><option value="BEPC">BEPC / GCE O Level</option><option value="PROBATOIRE">Probatoire / CAP</option><option value="BAC">Baccalauréat / GCE A Level</option><option value="BTS">BTS / HND (Bac+2)</option><option value="LICENCE">Licence / Bachelor (Bac+3)</option><option value="MASTER">Master / Engineer (Bac+5)</option><option value="DOCTORATE">Doctorate</option></select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Spoken languages</label>
+                  <input name="spoken_languages" placeholder="e.g. French, English" value={(formData as any).spoken_languages || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Blood group</label>
+                  <select name="blood_group" value={(formData as any).blood_group || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"><option value="">—</option><option value="A+">A+</option><option value="A-">A-</option><option value="B+">B+</option><option value="B-">B-</option><option value="AB+">AB+</option><option value="AB-">AB-</option><option value="O+">O+</option><option value="O-">O-</option></select>
+                </div>
+                <div className="flex items-center gap-2 pt-6">
+                  <input id="has_disability" type="checkbox" className="accent-brand-500" checked={!!formData.has_disability} onChange={(e) => setFormData(prev => ({ ...prev, has_disability: e.target.checked }))} />
+                  <label htmlFor="has_disability" className="text-sm text-gray-700 dark:text-gray-300">Recognised disability (adapted work station)</label>
+                </div>
                 
                 <div className="col-span-1 md:col-span-2 flex items-center justify-between border-b pb-2 mb-2 mt-4">
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Contact Details</h3>
@@ -334,6 +382,22 @@ export default function EmployeeForm() {
                 <div className="col-span-1 md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
                   <textarea required name="address" value={formData.address} onChange={handleChange} rows={2} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
+                  <input name="city" placeholder="e.g. Douala" value={(formData as any).city || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Region</label>
+                  <select name="region" value={(formData as any).region || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all"><option value="">—</option><option value="ADAMAWA">Adamawa</option><option value="CENTRE">Centre</option><option value="EAST">East</option><option value="FAR_NORTH">Far North</option><option value="LITTORAL">Littoral</option><option value="NORTH">North</option><option value="NORTH_WEST">North-West</option><option value="WEST">West</option><option value="SOUTH">South</option><option value="SOUTH_WEST">South-West</option></select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">P.O. Box</label>
+                  <input name="postal_box" value={(formData as any).postal_box || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Professional telephone</label>
+                  <input name="professional_phone" value={(formData as any).professional_phone || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
                 </div>
                 <div className="col-span-1 md:col-span-2 mt-4 flex items-center justify-between border-b pb-2 mb-2">
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Emergency Contacts</h3>
@@ -418,17 +482,51 @@ export default function EmployeeForm() {
                   <select name="contract_type" value={formData.contract_type} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all">
                     <option value="PERMANENT">Permanent Contract</option>
                     <option value="FIXED_TERM">Fixed-Term Contract</option>
-                    <option value="INTERNSHIP">Internship</option>
-                    <option value="SERVICE">Service</option>
+                    <option value="INTERNSHIP">Internship agreement</option>
+                    <option value="TEMPORARY">Temporary work</option>
+                    <option value="APPRENTICESHIP">Apprenticeship</option>
+                    <option value="SERVICE">Service contract</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department ID</label>
-                  <input type="number" name="department" value={formData.department || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Department</label>
+                  <SearchSelect
+                    url="organisation/departments/"
+                    value={formData.department}
+                    label={(d) => `${d.name} (${d.code})`}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, department: v }))}
+                    placeholder="Search a department…"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Position ID</label>
-                  <input type="number" name="position" value={formData.position || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Position</label>
+                  <SearchSelect
+                    url="organisation/positions/"
+                    value={formData.position}
+                    label={(p) => `${p.title} (${p.code})`}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, position: v }))}
+                    placeholder="Search a position…"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category / grade</label>
+                  <SearchSelect
+                    url="organisation/classifications/"
+                    value={formData.classification}
+                    label={(c) => [c.category, c.grade, c.echelon].filter(Boolean).join(" – ")}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, classification: v }))}
+                    placeholder="Search a category…"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Workplace</label>
+                  <SearchSelect
+                    url="organisation/sites/"
+                    value={formData.workplace}
+                    label={(w) => `${w.name} (${w.code})`}
+                    onChange={(v) => setFormData((prev) => ({ ...prev, workplace: v }))}
+                    placeholder="Search a site…"
+                  />
                 </div>
               </div>
             )}
@@ -454,6 +552,14 @@ export default function EmployeeForm() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Account Number</label>
                   <input name="account_number" value={formData.account_number || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bank branch</label>
+                  <input name="bank_branch" value={(formData as any).bank_branch || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">RIB key</label>
+                  <input name="bank_key" value={(formData as any).bank_key || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
                 
                 <h3 className="col-span-1 md:col-span-2 text-lg font-semibold text-gray-800 dark:text-white border-b pb-2 mb-2 mt-4">Social & Tax Identifiers</h3>
                 <div>
@@ -464,6 +570,14 @@ export default function EmployeeForm() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tax ID Number</label>
                   <input name="tax_identification_number" value={formData.tax_identification_number || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CNPS registration date</label>
+                  <input type="date" name="cnps_registration_date" value={(formData as any).cnps_registration_date || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Professional card / order number</label>
+                  <input name="professional_identification" value={(formData as any).professional_identification || ""} onChange={handleChange} className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none transition-all" />
+                </div>
               </div>
             )}
 
@@ -471,7 +585,7 @@ export default function EmployeeForm() {
             {currentStep === 3 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="p-6 bg-brand-50 dark:bg-brand-900/20 rounded-xl border border-brand-100 dark:border-brand-800/30">
-                  <h3 className="text-xl font-bold text-brand-800 dark:text-brand-300 mb-4">Review Information</h3>
+                  <h3 className="text-xl font-bold text-brand-800 dark:text-brand-400 mb-4">Review Information</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div><span className="text-sm text-gray-500">Full Name:</span> <p className="font-medium text-gray-900 dark:text-white">{formData.surname} {formData.given_names}</p></div>
                     <div><span className="text-sm text-gray-500">Hire Date:</span> <p className="font-medium text-gray-900 dark:text-white">{formData.date_of_hire}</p></div>

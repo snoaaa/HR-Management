@@ -1,83 +1,97 @@
 import { useState } from "react";
+import api from "@/api/axiosConfig";
+import { apiError } from "@/api/helpers";
+import { useApiItem } from "@/components/kit/hooks";
+import { Badge, Banner, Field, Modal } from "@/components/kit/ui";
+import { useToast } from "@/context/ToastContext";
 
+/** BN-174 password change and BN-176 second authentication factor. */
 export default function Security() {
-  const [switcherToggle, setSwitcherToggle] = useState(false);
+  const toast = useToast();
+  const { data: twoFactor, reload } = useApiItem<{ enabled: boolean; secret: string; uri: string }>("auth/2fa/setup/");
+  const [code, setCode] = useState("");
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [passwords, setPasswords] = useState({ old_password: "", new_password: "", confirm: "" });
+  const [error, setError] = useState<string | null>(null);
+
+  const activate = async () => {
+    try {
+      await api.post("auth/2fa/setup/", { code });
+      toast.success("Second factor activated: it will be asked at each sign-in.");
+      setCode("");
+      reload();
+    } catch (err) {
+      toast.error(apiError(err));
+    }
+  };
+  const deactivate = async () => {
+    try {
+      await api.delete("auth/2fa/setup/", { data: { code } });
+      toast.success("Second factor deactivated.");
+      setCode("");
+      reload();
+    } catch (err) {
+      toast.error(apiError(err));
+    }
+  };
+  const changePassword = async () => {
+    setError(null);
+    if (passwords.new_password !== passwords.confirm) return setError("The two new passwords are different.");
+    try {
+      const res = await api.post("auth/change-password/", { old_password: passwords.old_password, new_password: passwords.new_password });
+      localStorage.setItem("access_token", res.data.access);
+      localStorage.setItem("refresh_token", res.data.refresh);
+      toast.success("Password changed.");
+      setPasswordOpen(false);
+      setPasswords({ old_password: "", new_password: "", confirm: "" });
+    } catch (err) {
+      setError(apiError(err));
+    }
+  };
 
   return (
-    <div className="mb-6 rounded-2xl border border-gray-200  p-5 lg:p-6 dark:border-gray-800 ">
-      <h4 className="text-lg mb-4 font-semibold text-gray-800 lg:mb-6 dark:text-white/90">
-        Security
-      </h4>
-      <div>
-        <div className="flex flex-col justify-between gap-4 border-b border-gray-200 py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-end dark:border-gray-800">
-          <div>
-            <span className="block text-base mb-1 font-medium text-gray-800 dark:text-white/90">
-              Change Password
-            </span>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Receive real-time notifications and team alerts.
-            </p>
-          </div>
-          <div>
-            <button className="shadow-theme-xs flex h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white py-2.5 pr-4 pl-3.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-              >
-                <path
-                  d="M12.3861 5.08087L14.9182 7.61296M15.6437 3.5917L16.408 4.35603C16.8962 4.84419 16.8962 5.63564 16.408 6.1238L7.83547 14.6963C7.69039 14.8414 7.51182 14.9486 7.31554 15.0083L3.97461 16.0251L4.99141 12.6842C5.05115 12.4879 5.15829 12.3093 5.30337 12.1642L13.8759 3.5917C14.3641 3.10355 15.1555 3.10355 15.6437 3.5917Z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Change Password
-            </button>
-          </div>
+    <div className="card mb-6 p-5 lg:p-6">
+      <h4 className="mb-4 text-lg font-semibold text-primary-c">Security</h4>
+      <div className="flex flex-col justify-between gap-4 border-b pb-4 sm:flex-row sm:items-center" style={{ borderColor: "var(--border-color)" }}>
+        <div>
+          <span className="mb-1 block font-medium text-primary-c">Password</span>
+          <p className="text-sm text-secondary-c">At least 8 characters with upper and lower case letters, a digit and a symbol.</p>
         </div>
-        <div className="flex flex-col justify-between gap-4 border-b border-gray-200 py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex-row sm:items-end dark:border-gray-800">
-          <div>
-            <span className="block text-base font-medium mb-1 text-gray-800 dark:text-white/90">
-              Two-factor authentication (2FA)
-            </span>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Keep your account secure by enabling 2FA
-            </p>
-          </div>
-          <div>
-            <label
-              htmlFor="toggle1"
-              className="flex cursor-pointer items-center gap-3 text-sm font-medium text-gray-700 select-none dark:text-gray-400"
-            >
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  id="toggle1"
-                  className="sr-only"
-                  checked={switcherToggle}
-                  onChange={(e) => setSwitcherToggle(e.target.checked)}
-                />
-                <div
-                  className={`block h-5 w-9 rounded-full duration-200 ${
-                    switcherToggle
-                      ? "bg-brand-500 dark:bg-brand-500"
-                      : "bg-gray-200 dark:bg-white/10"
-                  }`}
-                ></div>
-                <div
-                  className={`shadow-theme-sm absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white duration-200 ease-linear ${
-                    switcherToggle ? "translate-x-full" : "translate-x-0"
-                  }`}
-                ></div>
-              </div>
-            </label>
-          </div>
-        </div>
+        <button type="button" className="btn-secondary" onClick={() => setPasswordOpen(true)}>Change the password</button>
       </div>
+      <div className="pt-4">
+        <span className="mb-1 flex items-center gap-2 font-medium text-primary-c">
+          Two-factor authentication {twoFactor?.enabled ? <Badge tone="green">Active</Badge> : <Badge>Inactive</Badge>}
+        </span>
+        <p className="mb-3 text-sm text-secondary-c">A 6-digit code from an authenticator application (Google Authenticator, Microsoft Authenticator, FreeOTP…) is asked at each sign-in.</p>
+        {twoFactor && !twoFactor.enabled && (
+          <div className="space-y-2 rounded-lg border p-3 text-sm" style={{ borderColor: "var(--border-color)" }}>
+            <p>1. In your authenticator application, add an account with this key:</p>
+            <p className="mono break-all rounded bg-brand-50 px-2 py-1 text-primary-c dark:bg-white/5">{twoFactor.secret}</p>
+            <p>or, on your phone, <a className="text-brand-600 underline" href={twoFactor.uri}>open this link</a>.</p>
+            <p>2. Type the code displayed by the application:</p>
+          </div>
+        )}
+        {twoFactor && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <input className="input-field mono w-36 tracking-widest" inputMode="numeric" maxLength={6} placeholder="000000" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} />
+            {twoFactor.enabled ? (
+              <button type="button" className="btn-danger" disabled={code.length !== 6} onClick={deactivate}>Deactivate</button>
+            ) : (
+              <button type="button" className="btn-primary" disabled={code.length !== 6} onClick={activate}>Activate</button>
+            )}
+          </div>
+        )}
+      </div>
+      <Modal open={passwordOpen} title="Change the password" onClose={() => setPasswordOpen(false)} size="sm"
+        footer={<button type="button" className="btn-primary" onClick={changePassword}>Change</button>}>
+        <div className="space-y-3">
+          {error && <Banner tone="error">{error}</Banner>}
+          <Field label="Current password"><input type="password" className="input-field" value={passwords.old_password} onChange={(e) => setPasswords({ ...passwords, old_password: e.target.value })} /></Field>
+          <Field label="New password"><input type="password" className="input-field" value={passwords.new_password} onChange={(e) => setPasswords({ ...passwords, new_password: e.target.value })} /></Field>
+          <Field label="Confirm the new password"><input type="password" className="input-field" value={passwords.confirm} onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })} /></Field>
+        </div>
+      </Modal>
     </div>
   );
 }
